@@ -1,0 +1,5 @@
+1. Link a sharable version of tsg-library not the study version
+2. Remove dependecy of SDLs from Pong
+	2.1 abstract the event mechanism
+3. Resolve all warning or downgrade the level
+4. Add namepsaces tsg2 to the engine
