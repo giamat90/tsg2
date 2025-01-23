@@ -22,6 +22,8 @@ public:
 	virtual bool initialize() = 0;
 	virtual void run_game() = 0;
 	virtual void shutdown() = 0;
+public:
+	window * const get_window() const { return m_window; }
 protected: // virtual methods
 	virtual void process_input() = 0;
 	virtual void update_game() = 0;

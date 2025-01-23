@@ -8,7 +8,7 @@
 class TSG2_API window {
 public:
 	class window_exception : public std::exception {
-		const char* waht() { return "window exception"; }
+		const char* what() { return "window exception"; }
 	};
 	class create_exception : public window_exception {
 		const char* what() { return "create exception"; }

@@ -117,6 +117,9 @@ namespace geometry {
 			if (MEASURE::DEPTH != m) {
 				return m_measure[m];
 			}
+			else {
+				throw;
+			}
 		}
 		inline const unsigned& operator[](MEASURE m) const {
 			if (MEASURE::DEPTH != m) {
