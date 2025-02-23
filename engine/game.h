@@ -6,7 +6,7 @@
 #include "input.h"
 #include "game_timer.h"
 #include "texture.h"
-#include <types.h>
+#include <tsg/types.h>
 
 class TSG2_API game : public tsg::non_copyable
 {

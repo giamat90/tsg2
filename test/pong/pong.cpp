@@ -4,7 +4,7 @@
 #include <SDL3/SDL_timer.h>
 #include <thread>
 #include <chrono>
-#include "io/io.h"
+#include <tsg/io.h>
 
 using geometry::rectangle;
 using geometry::AXES;

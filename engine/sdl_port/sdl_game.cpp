@@ -8,7 +8,7 @@
 #include "sdl_game_timer.h"
 #include "sdl_converter.h"
 #include "sdl_texture.h"
-#include "io/io.h"
+#include <tsg/io.h>
 
 #include <SDL3/SDL_ttf.h>
 #include <SDL3/SDL_image.h>

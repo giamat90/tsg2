@@ -1,5 +1,5 @@
 #include "glfw_window.h"
-#include <types.h>
+#include <tsg/types.h>
 
 glfw_window::glfw_window(const std::string& t, const width_t w, const height_t h) : window(t, w, h) {
 	// Create an GLFW Window

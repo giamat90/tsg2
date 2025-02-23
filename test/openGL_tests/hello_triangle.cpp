@@ -1,4 +1,4 @@
-#include <io/io.h>
+#include <tsg/io.h>
 
 int main() {
 	tsg::print("Hello Triangle");

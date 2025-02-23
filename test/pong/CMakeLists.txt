@@ -5,7 +5,7 @@ add_executable(pong ${PONG_SOURCES})
 # Set the folder for Visual Studio
 set_target_properties(pong PROPERTIES FOLDER "test")
 
-include_directories(${CMAKE_SOURCE_DIR}/externals/tsg)
+include_directories(${CMAKE_SOURCE_DIR}/externals/tsg/include)
 
 # Set up source groups for Visual Studio filters
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "source" FILES ${PONG_SOURCES})

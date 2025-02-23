@@ -2,7 +2,7 @@
 
 #include "tsg2.h"
 #include "geometry.h"
-#include <types.h>
+#include <tsg/types.h>
 
 using geometry::surface;
 

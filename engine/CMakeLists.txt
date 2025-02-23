@@ -13,7 +13,7 @@ set_target_properties(engine PROPERTIES FOLDER "tsg2")
 
 source_group("sources" FILES ${ENGINE_SOURCES})
 
-include_directories(${CMAKE_SOURCE_DIR}/externals/tsg)
+include_directories(${CMAKE_SOURCE_DIR}/externals/tsg/include)
 
 # add necessary simbols to export the dll
 add_compile_definitions(TSG2_EXPORT)

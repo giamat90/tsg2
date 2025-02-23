@@ -8,7 +8,7 @@
 #include "glfw_game_timer.h"
 #include "glfw_converter.h"
 #include "glfw_texture.h"
-#include "io/io.h"
+#include <tsg/io.h>
 
 #include <GLFW/glfw3.h>
 

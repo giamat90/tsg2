@@ -1,7 +1,7 @@
 #include "glfw_renderer.h"
 #include "glfw_texture.h"
 #include "glfw_font.h"
-#include "io/io.h"
+#include <tsg/io.h>
 #include <GLFW/glfw3.h>
 
 glfw_renderer::glfw_renderer(glfw_window * w) : renderer(w) {

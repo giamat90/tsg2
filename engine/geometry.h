@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tsg2.h"
-#include "io/io.h"
+#include <tsg/io.h>
 
 namespace geometry {
 	enum AXES {
