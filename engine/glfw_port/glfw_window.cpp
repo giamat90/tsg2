@@ -10,6 +10,7 @@ glfw_window::glfw_window(const std::string& t, const width_t w, const height_t h
 		throw create_exception();
 	}
 	glfwMakeContextCurrent(m_adaptee);
+	glfwSwapInterval(1);
 }
 
 glfw_window::~glfw_window() {

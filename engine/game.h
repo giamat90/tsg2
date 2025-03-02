@@ -15,7 +15,8 @@ public:
 		NONE,
 		INITIALIZING,
 		RUNNING,
-		STOPPING
+		STOPPING,
+		SHUT_DOWN
 	};
 	game();
 	~game();

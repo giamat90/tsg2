@@ -19,10 +19,12 @@ include_directories(${CMAKE_SOURCE_DIR}/externals/tsg/include)
 add_compile_definitions(TSG2_EXPORT)
 
 if(USE_GLFW)
-	# Add SDL port sources to engine library
+	# Add GLFW port sources to engine library
+	#set(GLAD_GL "${GLFW_SOURCE_DIR}/deps/glad/gl.h")
 	file(GLOB GLFW_PORT_SOURCES 
 		"${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/*.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/*.h"
+	#	${GLAD_GL}
 	)
 
 	target_sources(engine PRIVATE ${GLFW_PORT_SOURCES})
@@ -32,9 +34,10 @@ if(USE_GLFW)
 	target_compile_definitions(engine PUBLIC USE_GLFW)
 	
 	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/include)
+	#include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
 #	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
 	target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/")
-	target_link_libraries(engine PRIVATE glfw3dll)
+	target_link_libraries(engine PRIVATE glfw3.lib)
 #	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "Active(Release)")
 #		target_link_libraries(engine PRIVATE glfw3)
 #		target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/Release")

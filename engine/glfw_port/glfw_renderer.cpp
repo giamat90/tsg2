@@ -23,7 +23,7 @@ glfw_renderer::~glfw_renderer() {
 // overrided methods
 void glfw_renderer::render() {
 	/* Render here */
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
 
 	/* Swap front and back buffers */
 	if (auto w = dynamic_cast<glfw_window*>(m_window)) {

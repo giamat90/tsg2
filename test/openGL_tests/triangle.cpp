@@ -1,5 +1,5 @@
 #include "triangle.h"
-#include <io/io.h>
+#include <tsg/io.h>
 #include "game_event.h"
 
 triangle::triangle() {
@@ -28,7 +28,7 @@ bool triangle::initialize() {
 }
 
 void triangle::run_game() {
-	while (GAME_STATE::RUNNING == m_state) {
+	while (GAME_STATE::SHUT_DOWN != m_state) {
 		process_input();
 		update_game();
 		generate_output();
@@ -44,7 +44,7 @@ void triangle::initialize_objects() {
 }
 
 void triangle::process_input() {
-	if( game_event::GAME_EVENTS::QUIT == game_event::get_events()){
+	if( game_event::GAME_EVENTS::QUIT == game_event::get_events(this)){
 		m_state = GAME_STATE::STOPPING;
 	}
 	/* ToDo */
@@ -55,9 +55,11 @@ void triangle::process_input() {
 
 void triangle::update_game() {
 	/* ToDo */
-};
+	auto tick = m_timer->tick();
+	tsg::print("tick={}", tick);
+}
 
 void triangle::generate_output() {
-	m_renderer->render()
+	m_renderer->render();
 	/* ToDo */
-};
+}

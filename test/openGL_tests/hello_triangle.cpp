@@ -1,4 +1,5 @@
 #include <tsg/io.h>
+#include "triangle.h"
 
 int main() {
 	tsg::print("Hello Triangle");
