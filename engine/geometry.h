@@ -34,7 +34,7 @@ namespace geometry {
 	};
 
 	template<std::size_t Dim>
-	class vector : public position {
+	class TSG2_API vector : public position {
 	public:
 		vector() : position() {}
 		vector(const float x, const float y) : position() {

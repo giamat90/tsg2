@@ -27,7 +27,9 @@ public:
 	window * const get_window() const { return m_window; }
 protected: // virtual methods
 	virtual void process_input() = 0;
+	/* Calculate elapsed time and update game-object states */
 	virtual void update_game() = 0;
+	/* Create video output */
 	virtual void generate_output() = 0;
 	virtual void initialize_objects() = 0;
 protected:

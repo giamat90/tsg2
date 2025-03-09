@@ -8,29 +8,18 @@
 #include "glfw_game_timer.h"
 #include "glfw_converter.h"
 #include "glfw_texture.h"
-#include <tsg/io.h>
-
+#include <tsg/io.h>		// print
 #include <GLFW/glfw3.h>
 
 
 bool game::initialize_externals() {
-	// Initialize SDL
+	// Initialize GL and GLFW
 	bool res{ true };
 	/* Initialize the library */
 	if (GLFW_FALSE == glfwInit())
 	{
 		res = false;
 	}
-
-	//gladLoadGL(glfwGetProcAddress);
-	/*
-	if (!(res = glfw_Init(glfw_INIT_VIDEO))) {
-		tsg::print("Error initializing SDL");
-	}
-	if (!(res &= TTF_Init())) {
-		tsg::print("Error initializing glfw_TTF");
-	}
-	*/
 	return res;
 }
 

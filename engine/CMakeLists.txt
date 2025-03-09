@@ -34,10 +34,11 @@ if(USE_GLFW)
 	target_compile_definitions(engine PUBLIC USE_GLFW)
 	
 	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/include)
-	#include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
-#	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
+	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
 	target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/")
 	target_link_libraries(engine PRIVATE glfw3.lib)
+	
+	add_compile_definitions(GLFW_INCLUDE_NONE)
 #	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "Active(Release)")
 #		target_link_libraries(engine PRIVATE glfw3)
 #		target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/Release")
