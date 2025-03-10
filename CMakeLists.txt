@@ -22,9 +22,3 @@ add_subdirectory(test)
 # Build the tests
 add_subdirectory(externals)
 
-# test executable for glfw
-add_executable(ConsoleApplication ConsoleApplication/ConsoleApplication.cpp)
-target_link_directories(ConsoleApplication PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/externals/GLFW/lib/")
-target_link_libraries(ConsoleApplication PRIVATE glfw3.lib)
-target_include_directories(ConsoleApplication PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/externals/GLFW/include")
-target_include_directories(ConsoleApplication PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/externals/tsg/include")
