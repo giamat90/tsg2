@@ -35,6 +35,7 @@ if(USE_GLFW)
 	
 	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/include)
 	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
+	include_directories(${CMAKE_SOURCE_DIR}/externals/stb)
 	target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/")
 	target_link_libraries(engine PRIVATE glfw3.lib)
 	

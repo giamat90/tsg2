@@ -1,10 +1,10 @@
 #include <tsg/io.h>
-#include "triangle.h"
+#include "triangle_game.h"
 
 int main() {
 	tsg::print("Hello Triangle");
 	try {
-		triangle t;
+		triangle_game t;
 		if (t.initialize())
 		{
 			t.run_game();

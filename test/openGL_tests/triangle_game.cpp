@@ -1,16 +1,16 @@
-#include "triangle.h"
+#include "triangle_game.h"
 #include <tsg/io.h>
 #include "game_event.h"
 
-triangle::triangle() {
+triangle_game::triangle_game() {
 	tsg::print("triangle ctor");
 }
 
-triangle::~triangle() {
+triangle_game::~triangle_game() {
 	tsg::print("triangle dtor");
 }
 
-bool triangle::initialize() {
+bool triangle_game::initialize() {
 	bool res{ false };
 	if (initialize_externals()) {
 		create_window("triangle.exe", 1024, 768);
@@ -27,7 +27,7 @@ bool triangle::initialize() {
 	return res;
 }
 
-void triangle::run_game() {
+void triangle_game::run_game() {
 	while (GAME_STATE::SHUT_DOWN != m_state) {
 		process_input();
 		update_game();
@@ -35,15 +35,16 @@ void triangle::run_game() {
 	}
 }
 
-void triangle::shutdown() {
+void triangle_game::shutdown() {
 	/* ToDo */
 }
 
-void triangle::initialize_objects() {
+void triangle_game::initialize_objects() {
 	/* ToDo */
+
 }
 
-void triangle::process_input() {
+void triangle_game::process_input() {
 	if( game_event::GAME_EVENTS::QUIT == game_event::get_events(this)){
 		m_state = GAME_STATE::STOPPING;
 	}
@@ -53,13 +54,13 @@ void triangle::process_input() {
 	// process joystick - inputs
 };
 
-void triangle::update_game() {
+void triangle_game::update_game() {
 	/* ToDo */
 	auto tick = m_timer->tick();
 	tsg::print("tick={}", tick);
 }
 
-void triangle::generate_output() {
+void triangle_game::generate_output() {
 	m_renderer->render();
 	/* ToDo */
 }
