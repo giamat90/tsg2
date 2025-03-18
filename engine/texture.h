@@ -12,10 +12,11 @@ public:
 public:
 	texture(int w = 0, int h = 0, const std::string& asset = "") : m_width(w), m_height(h) { load(asset); };
 	virtual ~texture() { unload(); };
-	virtual void load(const std::string& asset = "") = 0;
-	virtual void unload() = 0;
+	virtual void load(const std::string& asset = "") {};
+	virtual void unload() {};
 public:
 	inline void set_where(const texture_position& p) { m_position = p; }
+	inline void set_size(int w = 0, int h = 0) { m_width = w; m_height = h; }
 	inline texture_position get_where() { return m_position; }
 public: // factory-method
 	static texture* create_texture();

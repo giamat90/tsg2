@@ -41,7 +41,8 @@ void triangle_game::shutdown() {
 
 void triangle_game::initialize_objects() {
 	/* ToDo */
-
+	main_character.init();
+	main_character.set_renderer(m_renderer);
 }
 
 void triangle_game::process_input() {
@@ -62,5 +63,6 @@ void triangle_game::update_game() {
 
 void triangle_game::generate_output() {
 	m_renderer->render();
+	main_character.draw();
 	/* ToDo */
 }

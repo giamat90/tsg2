@@ -8,6 +8,7 @@ class TSG2_API game_object {
 public:
 	game_object();
 	virtual ~game_object();
+	virtual void init() = 0;
 };
 
 class TSG2_API drawable : public game_object {

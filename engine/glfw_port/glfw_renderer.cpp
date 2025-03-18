@@ -111,6 +111,7 @@ void glfw_renderer::render() {
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT);	
 
+#if HELLO_TRIANGLE
 		//static float rotation = 0.0;
 		//rotation += 0.1;
 		mat4x4 m, p, mvp;
@@ -124,6 +125,7 @@ void glfw_renderer::render() {
 		glUniformMatrix4fv(s_gl_attr.mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
 		glBindVertexArray(s_gl_attr.vertex_array);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+#endif
 		/* Swap front and back buffers */
 		glfwSwapBuffers(w->get_adaptee());
 	}
@@ -149,6 +151,11 @@ void glfw_renderer::draw(sprite* s) {
 }
 
 void glfw_renderer::draw(texture* t) {
+	if (auto texture = dynamic_cast<glfw_texture*>(t)) {
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, *(texture->get_adaptee()));
+		glDisable(GL_TEXTURE_2D);
+	}
 	/*
 	auto tmp_texture = dynamic_cast<glfw_texture*>(t);
 	glfw_FRect dest{

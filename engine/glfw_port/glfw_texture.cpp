@@ -9,23 +9,23 @@ texture* texture::create_texture() {
 	return new glfw_texture();
 }
 
-glfw_texture::glfw_texture(int w, int h, const std::string& a) : texture(w, h, a) {}
+glfw_texture::glfw_texture(int w, int h, const std::string& a) : texture(w, h, a) { m_adaptee = new GLuint{}; }
 
 void glfw_texture::load(const std::string& asset){
     if (!asset.empty()) {
-        if (m_texture > 0u) {
+        if (m_adaptee) {
             unload();
         }
 
         int width, height;
         int nrChannels;
-        unsigned char* data = stbi_load(asset.c_str(), &m_width, &m_height, &nrChannels, 0);
+        unsigned char* data = stbi_load(asset.c_str(), &width, &height, &nrChannels, 0);
 
         // Generate texture
-        glGenTextures(1, &m_texture);
+        glGenTextures(1, m_adaptee);
 
         // Bind the texture
-        glBindTexture(GL_TEXTURE_2D, m_texture);
+        glBindTexture(GL_TEXTURE_2D, *m_adaptee);
 
         // Set texture parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -34,7 +34,7 @@ void glfw_texture::load(const std::string& asset){
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // Upload image data to GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, asset.c_str());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
         // Generate mipmaps
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -44,8 +44,8 @@ void glfw_texture::load(const std::string& asset){
 }
 
 void glfw_texture::unload() {
-    if (m_texture) {
-        glDeleteTextures(1, &m_texture);
-        m_texture = 0u;
+    if (*m_adaptee) {
+        glDeleteTextures(1, m_adaptee);
+        *m_adaptee = 0u;
     }
 }

@@ -7,5 +7,6 @@ public:
 	arrow();
 	~arrow() = default;
 public:
+	void init() override;
 	void update(const float delta_time) override;
 };
