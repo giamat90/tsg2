@@ -14,5 +14,8 @@ public:
 	virtual ~glfw_texture() = default;
 	void load(const std::string& asset = "") override;
 	void unload() override;
+	GLuint get_adaptee() { return m_id; }
+protected:
+	GLuint m_id;
 };
 

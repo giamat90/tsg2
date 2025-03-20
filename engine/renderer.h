@@ -9,6 +9,8 @@
 #include "color.h"
 #include "font.h"
 #include "asset.h"
+#include "game_object.h"	// drawable
+#include <vector>
 
 class TSG2_API renderer {
 public:
@@ -25,6 +27,13 @@ public: // pure-virtual methods
 	virtual void draw(texture*) = 0;
 	virtual void draw(font*) = 0;
 	virtual void draw(geometry::rectangle&) = 0;
+public:
+	inline void add_drawable(drawable* d){
+		m_drawables.push_back(d);
+	}
 protected:
 	window* m_window{ nullptr };
+	std::vector<drawable*> m_drawables;
+
+
 };

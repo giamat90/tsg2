@@ -42,7 +42,8 @@ void triangle_game::shutdown() {
 void triangle_game::initialize_objects() {
 	/* ToDo */
 	main_character.init();
-	main_character.set_renderer(m_renderer);
+	//main_character.set_renderer(m_renderer);
+	m_renderer->add_drawable(&main_character);
 }
 
 void triangle_game::process_input() {
@@ -58,11 +59,10 @@ void triangle_game::process_input() {
 void triangle_game::update_game() {
 	/* ToDo */
 	auto tick = m_timer->tick();
-	tsg::print("tick={}", tick);
 }
 
 void triangle_game::generate_output() {
 	m_renderer->render();
-	main_character.draw();
+	//main_character.draw();
 	/* ToDo */
 }

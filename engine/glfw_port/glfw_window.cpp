@@ -1,5 +1,7 @@
 #include "glfw_window.h"
 #include <tsg/types.h>
+#include <tsg/io.h>
+#include <glad/gl.h>
 
 glfw_window::glfw_window(const std::string& t, const width_t w, const height_t h) : window(t, w, h) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

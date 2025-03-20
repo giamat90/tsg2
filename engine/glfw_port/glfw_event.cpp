@@ -5,6 +5,7 @@
 #include "game_event.h"
 #include "glfw_window.h"
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
 
 game_event::GAME_EVENTS game_event::get_events(game* g) {
 	if (g) {		
@@ -13,6 +14,8 @@ game_event::GAME_EVENTS game_event::get_events(game* g) {
 				return GAME_EVENTS::QUIT;
 			}
 		}
+		tsg::print(glGetError());
+
 	}
 	else {
 		throw;

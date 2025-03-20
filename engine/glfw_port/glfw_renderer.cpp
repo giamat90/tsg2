@@ -26,12 +26,38 @@ private:
 	GLuint vertex_shader;
 	GLuint fragment_shader;
 private:
-	const Vertex vertices[3] =
-	{
-		{ { -0.6f, -0.4f }, { 1.f, 0.f, 0.f } },
-		{ {  0.6f, -0.4f }, { 0.f, 1.f, 0.f } },
-		{ {   0.f,  0.6f }, { 0.f, 0.f, 1.f } }
+	//const Vertex vertices[3] =
+	//{
+	//	{ { -0.6f, -0.4f }, { 1.f, 0.f, 0.f } },
+	//	{ {  0.6f, -0.4f }, { 0.f, 1.f, 0.f } },
+	//	{ {   0.f,  0.6f }, { 0.f, 0.f, 1.f } }
+	//};
+	//const float vertices[9] = {
+	//	-.5f, -.5f,.0f,
+	//	.5f, -.5f,.0f,
+	//	.0f, .5f,.0f,
+	//};
+	float vertices[32] = {
+	0.5f, 0.5f, 0.f, 1.0f, 0.f, 0.0f, 1.0f, 1.0f, // top left
+	0.5f, -0.5f, 0.f, 0.f, 1.0f, 0.0f, 1.0f, 0.f, // top right
+	-0.5f,-0.5f, 0.f, 0.f, 0.f, 1.0f, 0.0f, 0.0f, // bottom right
+	-0.5f, 0.5f, 0.f, 1.0f, 1.0f, 0.0f, 0.f, 1.f  // bottom left
 	};
+
+	const char* vertex_shader_text =
+	"#version 330\n"
+	"layout (location = 0) in vec3 aPos;\n"
+	"layout (location = 1) in vec3 aColor;\n"
+	"layout (location = 2) in vec2 aTexCoord;\n"
+	"out vec3 ourColor;\n"
+	"out vec2 TexCoord;\n"
+	"void main()\n"
+	"{\n"
+	"    gl_Position = vec4(aPos, 1.0);\n"
+	"    ourColor = aColor;\n"
+	"    TexCoord = aTexCoord;\n"
+	"}\n";
+#if ORIGINAL
 	const char* vertex_shader_text =
 	"#version 330\n"
 	"uniform mat4 MVP;\n"
@@ -43,6 +69,18 @@ private:
 	"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
 	"    color = vCol;\n"
 	"}\n";
+#endif
+	const char* fragment_shader_text =
+	"#version 330\n"
+	"out vec4 FragColor;\n"
+	"in vec3 ourColor;\n"
+	"in vec2 TexCoord;\n"
+	"uniform sampler2D ourTexture;\n"
+	"void main()\n"
+	"{\n"
+	"    FragColor = texture(ourTexture, TexCoord);\n"
+	"}\n";
+#if ORIGINAL
 	const char* fragment_shader_text =
 	"#version 330\n"
 	"in vec3 color;\n"
@@ -51,6 +89,34 @@ private:
 	"{\n"
 	"    fragment = vec4(color, 1.0);\n"
 	"}\n";
+#endif
+#if 0
+	"#version 330 core\n"
+	"layout(location = 0) in vec3 aPos;\n"       // Vertex position
+	"layout(location = 1) in vec2 aTexCoord;\n"// Texture coordinate
+
+	"uniform mat4 model;\n"      // Model matrix
+	"uniform mat4 view;\n"       // View matrix
+	"uniform mat4 projection;\n" // Projection matrix
+
+	"out vec2 TexCoord;\n"       // Output to fragment shader
+
+	"void main() {\n"
+	// Transform vertex position to clip space
+	"    gl_Position = projection * view * model * vec4(aPos, 1.0); \n"
+	// Pass texture coordinates to fragment shader
+	"    TexCoord = aTexCoord;\n"
+	"}\n";
+	const char* fragment_shader_text =
+	"#version 330 core\n"
+	"in vec2 TexCoord;\n"           // Input from vertex shader
+	"uniform sampler2D texture1;\n" // Texture sampler
+	"out vec4 FragColor;\n"         // Output color
+	"void main() {\n"
+	// Sample texture and set as fragment color
+	"    FragColor = texture(texture1, TexCoord);\n"
+	"}\n";
+#endif
 };
 
 static gl_attributes s_gl_attr;
@@ -78,19 +144,22 @@ glfw_renderer::glfw_renderer(glfw_window * w) : renderer(w) {
 	glAttachShader(s_gl_attr.program, s_gl_attr.fragment_shader);
 	glLinkProgram(s_gl_attr.program);
 
-	s_gl_attr.mvp_location = glGetUniformLocation(s_gl_attr.program, "MVP");
-	s_gl_attr.vpos_location = glGetAttribLocation(s_gl_attr.program, "vPos");
-	s_gl_attr.vcol_location = glGetAttribLocation(s_gl_attr.program, "vCol");
+	//s_gl_attr.mvp_location = glGetUniformLocation(s_gl_attr.program, "MVP");
+	//s_gl_attr.vpos_location = glGetAttribLocation(s_gl_attr.program, "vPos");
+	//s_gl_attr.vcol_location = glGetAttribLocation(s_gl_attr.program, "vCol");
 
-	s_gl_attr.vertex_array;
-	glGenVertexArrays(1, &s_gl_attr.vertex_array);
-	glBindVertexArray(s_gl_attr.vertex_array);
-	glEnableVertexAttribArray(s_gl_attr.vpos_location);
-	glVertexAttribPointer(s_gl_attr.vpos_location, 2, GL_FLOAT, GL_FALSE,
-		sizeof(gl_attributes::Vertex), (void*)offsetof(gl_attributes::Vertex, pos));
-	glEnableVertexAttribArray(s_gl_attr.vcol_location);
-	glVertexAttribPointer(s_gl_attr.vcol_location, 3, GL_FLOAT, GL_FALSE,
-		sizeof(gl_attributes::Vertex), (void*)offsetof(gl_attributes::Vertex, col));
+	//glGenVertexArrays(1, &s_gl_attr.vertex_array);
+	//glBindVertexArray(s_gl_attr.vertex_array);
+	//glEnableVertexAttribArray(s_gl_attr.vpos_location);
+	//glVertexAttribPointer(s_gl_attr.vpos_location, 2, GL_FLOAT, GL_FALSE,
+		//sizeof(gl_attributes::Vertex), (void*)offsetof(gl_attributes::Vertex, pos));
+	//glEnableVertexAttribArray(s_gl_attr.vcol_location);
+	//glVertexAttribPointer(s_gl_attr.vcol_location, 3, GL_FLOAT, GL_FALSE,
+		//sizeof(gl_attributes::Vertex), (void*)offsetof(gl_attributes::Vertex, col));
+#if 0 // See De Vries pag 33
+	glDeleteShader(s_gl_attr.vertex_shader);
+	glDeleteShader(s_gl_attr.fragment_shader);
+#endif
 }
 
 glfw_renderer::~glfw_renderer() {
@@ -103,17 +172,19 @@ glfw_renderer::~glfw_renderer() {
 // overrided methods
 void glfw_renderer::render() {
 	/* Render here */
+	tsg::print(glGetError());
 	if (auto w = dynamic_cast<glfw_window*>(m_window)) {
 		int width, height;
 		glfwGetFramebufferSize(w->get_adaptee(), &width, &height);
 		const float ratio = width / (float)height;
 
 		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT);	
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		tsg::print(glGetError());
 
 #if HELLO_TRIANGLE
-		//static float rotation = 0.0;
-		//rotation += 0.1;
+		static float rotation = 0.0;
+		rotation += 0.1;
 		mat4x4 m, p, mvp;
 		mat4x4_identity(m);
 		mat4x4_rotate_Z(m, m, (float)glfwGetTime());
@@ -121,14 +192,38 @@ void glfw_renderer::render() {
 		mat4x4_mul(mvp, p, m);
 
 		glUseProgram(s_gl_attr.program);
-		//glUniformMatrix4fv(s_gl_attr.mvp_location, 1, GL_FALSE, static_cast<GLfloat*>(&rotation));
+		glUniformMatrix4fv(s_gl_attr.mvp_location, 1, GL_FALSE, static_cast<GLfloat*>(&rotation));
 		glUniformMatrix4fv(s_gl_attr.mvp_location, 1, GL_FALSE, (const GLfloat*)&mvp);
 		glBindVertexArray(s_gl_attr.vertex_array);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 #endif
+
+		glUseProgram(s_gl_attr.program);
+		tsg::print(glGetError());
+
+		for (const auto& d : m_drawables) {			
+			if (auto texture = dynamic_cast<glfw_texture*>(d->get_texture())) {
+				glActiveTexture(GL_TEXTURE0);
+				//glEnable(GL_TEXTURE_2D);
+				//tsg::print(glGetError());
+				glBindTexture(GL_TEXTURE_2D, (texture->get_adaptee()));
+				tsg::print(glGetError()); 
+				
+				//GLint textureLocation = glGetUniformLocation(s_gl_attr.program, "myTexture");
+				//glUniform1i(textureLocation, 0);
+				//glUniform1i(glGetUniformLocation(s_gl_attr.vertex_shader, "fragment"), 0);
+				glBindVertexArray(s_gl_attr.vertex_array);
+				tsg::print(glGetError());
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+				//glDisable(GL_TEXTURE_2D);
+				tsg::print(glGetError());
+			}
+		}
 		/* Swap front and back buffers */
 		glfwSwapBuffers(w->get_adaptee());
+		tsg::print(glGetError());
 	}
+	//tsg::print("glerror = {}", glGetError());
 }
 
 void glfw_renderer::clear() {
@@ -153,7 +248,7 @@ void glfw_renderer::draw(sprite* s) {
 void glfw_renderer::draw(texture* t) {
 	if (auto texture = dynamic_cast<glfw_texture*>(t)) {
 		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, *(texture->get_adaptee()));
+		glBindTexture(GL_TEXTURE_2D, (texture->get_adaptee()));
 		glDisable(GL_TEXTURE_2D);
 	}
 	/*
