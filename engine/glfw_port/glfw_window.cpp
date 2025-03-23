@@ -3,6 +3,10 @@
 #include <tsg/io.h>
 #include <glad/gl.h>
 
+static void resize_window_callback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
+}
+
 glfw_window::glfw_window(const std::string& t, const width_t w, const height_t h) : window(t, w, h) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -15,6 +19,7 @@ glfw_window::glfw_window(const std::string& t, const width_t w, const height_t h
 		throw create_exception();
 	}
 	glfwMakeContextCurrent(m_adaptee);
+	glfwSetFramebufferSizeCallback(m_adaptee, resize_window_callback);
 }
 
 glfw_window::~glfw_window() {

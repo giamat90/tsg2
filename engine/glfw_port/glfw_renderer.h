@@ -3,6 +3,7 @@
 #include "../tsg2.h"
 #include "renderer.h"
 #include "glfw_window.h"
+#include "shader.h"
 
 class TSG2_API glfw_renderer : public renderer
 {
@@ -26,5 +27,7 @@ public: // overrided methods
 	void draw(texture*) override final;
 	void draw(font*) override final;
 	void draw(geometry::rectangle&) override final;
+private:
+	shader m_s;
 };
 

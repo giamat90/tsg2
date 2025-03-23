@@ -13,7 +13,7 @@ glfw_texture::glfw_texture(int w, int h, const std::string& a) : texture(w, h, a
 
 void glfw_texture::load(const std::string& asset){
     if (!asset.empty()) {
-        if (m_adaptee && *m_adaptee) {
+        if (m_adaptee) {
             unload();
         }
 
@@ -23,12 +23,11 @@ void glfw_texture::load(const std::string& asset){
         if (data) {
 
             // Generate texture
-            glGenTextures(1, &m_id);
+            glGenTextures(1, &m_adaptee);
             tsg::print(glGetError());
-            m_adaptee = &m_id;
 
             // Bind the texture
-            glBindTexture(GL_TEXTURE_2D, *m_adaptee);
+            glBindTexture(GL_TEXTURE_2D, m_adaptee);
             tsg::print(glGetError());
             //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -41,7 +40,7 @@ void glfw_texture::load(const std::string& asset){
 
             // Upload image data to GPU
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 8, 8, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             tsg::print(glGetError());
             //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
@@ -58,8 +57,8 @@ void glfw_texture::load(const std::string& asset){
 }
 
 void glfw_texture::unload() {
-    if (*m_adaptee) {
-        glDeleteTextures(1, m_adaptee);
-        *m_adaptee = 0u;
+    if (m_adaptee) {
+        glDeleteTextures(1, &m_adaptee);
+        m_adaptee = 0u;
     }
 }
