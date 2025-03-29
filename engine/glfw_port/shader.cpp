@@ -47,10 +47,13 @@ GLuint shader::load(const char * path, const SHADER_TYPE type) {
 		// create and compile shader program
 		GLuint local_shader = glCreateShader(type == SHADER_TYPE::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER);
 		glShaderSource(local_shader, 1, &code, NULL);
+		tsg::print(glGetError());
 		glCompileShader(local_shader);
+		tsg::print(glGetError());
 		// check compilation
 		int success;
 		glGetShaderiv(local_shader, GL_COMPILE_STATUS, &success);
+		tsg::print(glGetError());
 		if (!success) {
 			char info_log[512];
 			glGetShaderInfoLog(local_shader, 512, NULL, info_log);

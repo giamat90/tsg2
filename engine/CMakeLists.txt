@@ -32,10 +32,13 @@ if(USE_GLFW)
 	source_group("engine\\glfw_port" FILES ${GLFW_PORT_SOURCES})
 	
 	target_compile_definitions(engine PUBLIC USE_GLFW)
-	
+
+	# includes directories
+	include_directories(${CMAKE_SOURCE_DIR}/externals/)
 	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/include)
 	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
 	include_directories(${CMAKE_SOURCE_DIR}/externals/stb)
+
 	target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/")
 	target_link_libraries(engine PRIVATE glfw3.lib)
 	

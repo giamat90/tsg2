@@ -8,6 +8,10 @@
 #include <GLFW/glfw3.h>
 #include <linmath.h>	// mat4x4
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 class gl_attributes {
 	friend glfw_renderer;
 	using gl_program = GLuint;
@@ -130,13 +134,23 @@ private:
 	GLuint vertex_shader;
 	GLuint fragment_shader;
 private:
-	const float vertices[32] = {
+	/*/
+	const float vertices[32] = {	// quad
 		// positions          // colors           // texture coords
 		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
 		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
 		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
 	};
+	/**/
+	//
+	const float vertices[24] = {	// triangle
+		// positions          // colors           // texture coords
+		-0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top 
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+		 0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+	};
+	/**/
 
 	unsigned int indices[6] = {
 		0, 1, 3, // first triangle
@@ -224,7 +238,8 @@ glfw_renderer::glfw_renderer(glfw_window * w) : renderer(w) {
 	glDeleteShader(s_gl_texture_attr.fragment_shader);
 #endif
 
-	m_s.init("C:\\tsg2\\test\\openGL_tests\\shaders\\texture_vert.shad", "C:\\tsg2\\test\\openGL_tests\\shaders\\texture_frag.shad");
+	//m_s.init("C:\\tsg2\\test\\openGL_tests\\shaders\\texture_vert.shad", "C:\\tsg2\\test\\openGL_tests\\shaders\\texture_frag.shad");
+	m_s.init("C:\\tsg2\\test\\openGL_tests\\shaders\\texture_transform_vert.shad", "C:\\tsg2\\test\\openGL_tests\\shaders\\texture_transform_frag.shad");
 
 	// texture - buffers and arrays
 	glGenVertexArrays(1, &s_gl_texture_attr.vertex_array);
@@ -277,8 +292,14 @@ void glfw_renderer::render() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		tsg::print(glGetError());
 
-		
+
+		glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
 		m_s.use();
+		unsigned int transformLoc = glGetUniformLocation(*m_s.get_adaptee(), "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 		tsg::print(glGetError());	
 
 		for (const auto& d : m_drawables) {			
