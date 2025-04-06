@@ -7,6 +7,7 @@
 class TSG2_API glfw_keyboard_input : public keyboard_input
 {
 public:
+	glfw_keyboard_input();
 	bool is_key_pressed(const INPUT_KEY key) override;
 private:
 #if 0

@@ -1,10 +1,11 @@
 #include "glfw_game_timer.h"
 #include <tsg/io.h>
 #include <glad/gl.h>
+#include "gl_utility.h"
 
 glfw_game_timer::glfw_game_timer(const unsigned fps) : game_timer(fps) {
 	glfwSetTime(0.0f);
-	tsg::print(glGetError());
+	gl_check_error(__FILE__, __LINE__);
 }
 
 const float glfw_game_timer::tick() {

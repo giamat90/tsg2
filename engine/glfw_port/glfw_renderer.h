@@ -4,6 +4,7 @@
 #include "renderer.h"
 #include "glfw_window.h"
 #include "shader.h"
+#include "vertex.h"
 
 class TSG2_API glfw_renderer : public renderer
 {
@@ -28,6 +29,7 @@ public: // overrided methods
 	void draw(font*) override final;
 	void draw(geometry::rectangle&) override final;
 private:
-	shader m_s;
+	shader m_shader;
+	sprite_vertex m_vertex;
 };
 

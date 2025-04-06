@@ -2,6 +2,7 @@
 
 #include <game.h>
 #include "arrow.h"
+#include "bubble.h"
 
 class triangle_game : public game
 {
@@ -18,6 +19,7 @@ private: // override private-methods
 	void update_game() override;
 	void generate_output() override;
 private: // object
-	arrow main_character;
+	arrow m_arrow;
+	bubble m_bubble;
 };
 

@@ -1,2 +1,3 @@
 add_subdirectory(pong)
-add_subdirectory(openGL_tests)
+add_subdirectory(arrow_bubble)
+add_subdirectory(minotaur)
