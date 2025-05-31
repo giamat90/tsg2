@@ -36,8 +36,7 @@ namespace geometry {
 	template<std::size_t Dim>
 	class vector : public position {
 	public:
-		vector() : position() {}
-		vector(const float x, const float y) : position() {
+		vector(const float x = 0.0f, const float y = 0.0f) : position() {
 			static_assert(Dim == 2u);
 			m_v[AXES::X] = x;
 			m_v[AXES::Y] = y;

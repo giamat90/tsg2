@@ -42,9 +42,9 @@ enum class INPUT_KEY : int {
 		MAX_KEY = KEY_M
 	};
 
-class TSG2_API keyboard_input : public input {
+class TSG2_API keyboard_input {
 public:
-	keyboard_input() : input() {};
+	keyboard_input() {};
 	virtual ~keyboard_input() {};
 	virtual bool is_key_pressed(const INPUT_KEY key) = 0;
 };

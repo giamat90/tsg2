@@ -14,7 +14,6 @@ if(USE_GLFW)
 	# Set up source groups for Visual Studio filters
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "source" FILES ${HELLO_TRIANGLE_SOURCE})
 
-
 	# Linking engine libs
 	target_link_libraries(hello_triangle PRIVATE engine)
 	# Linking GLFW libs

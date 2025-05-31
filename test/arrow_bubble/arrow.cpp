@@ -6,7 +6,7 @@ arrow::arrow() {
 }
 
 void arrow::init() {
-	m_texture->set_size(50, 50);
+	m_texture->set_size(25, 25);
 	//m_texture->load("C:\\tsg2\\test\\arrow_bubble\\assets\\arrow.png");
 	//m_texture->load("C:\\tsg2\\test\\arrow_bubble\\assets\\arrow_cut.jpg");
 	m_texture->load("C:\\tsg2\\test\\arrow_bubble\\assets\\arrow.jpg");
@@ -15,4 +15,27 @@ void arrow::init() {
 
 void arrow::update(const float delta_time) {
 	/* ToDo */
+}
+
+void arrow::process_input(input* input) {
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_W)) {
+		tsg::print("Key w pressed!!! :D");
+		/* Go up */
+	}
+	else if (input->is_key_pressed(input::INPUT_KEY::KEY_A)) {
+		/* Go left */
+	}
+	else if (input->is_key_pressed(input::INPUT_KEY::KEY_S)) {
+		/* Go down */
+	}
+	else if (input->is_key_pressed(input::INPUT_KEY::KEY_D)) {
+		/* Go right */
+	}
+	else if (input->is_key_pressed(input::INPUT_KEY::KEY_SPACE)) {
+		/* JUMP */
+	}
+	else {
+		tsg::print("Key w not pressed!!! D:");
+	}
+
 }

@@ -2,8 +2,9 @@
 
 #include "tsg2.h"
 #include "texture.h"
-//#include "renderer.h"
-class renderer;
+
+// forward declaration for playable_object
+class input;
 
 class TSG2_API game_object {
 public:
@@ -13,22 +14,14 @@ public:
 };
 
 class TSG2_API drawable : public game_object {
-	friend renderer;
 public:
 	drawable();
 	virtual ~drawable();
-	//void draw() {
-	//	if (m_renderer && m_texture) {
-	//		m_renderer->draw(m_texture);
-	//	}
-	//};
 public:
-	//void set_renderer(renderer* r) { m_renderer = r; }
 	texture* get_texture() { return m_texture; }
 	void set_texture(texture* r) { m_texture = r; }
 protected:
 	texture* m_texture{ nullptr };
-	//renderer* m_renderer{ nullptr };
 };
 
 class TSG2_API updateable : public game_object {
@@ -51,6 +44,7 @@ public:
 };
 
 class TSG2_API trigger_object : public updateable {
+public:
 	trigger_object();
 	virtual ~trigger_object();
 };
@@ -61,5 +55,11 @@ public:
 	physical_object();
 	virtual ~physical_object();
 protected:
+};
 
+class TSG2_API playable_object {
+public:
+	playable_object();
+	virtual ~playable_object();
+	virtual void process_input(input*) = 0;
 };

@@ -4,7 +4,7 @@
 
 #include "glfw_window.h"
 #include "glfw_renderer.h"
-#include "glfw_keyboard_input.h"
+#include "glfw_input.h"
 #include "glfw_game_timer.h"
 #include "glfw_converter.h"
 #include "glfw_texture.h"
@@ -31,8 +31,8 @@ void game::create_renderer() {
 	m_renderer = new glfw_renderer(static_cast<glfw_window*>(m_window));
 }
 
-void game::create_keyboard_input() {
-	m_input = new glfw_keyboard_input();
+void game::create_input() {
+	m_input = new glfw_input(static_cast<glfw_window*>(m_window));
 }
 
 void game::create_timer(const unsigned fps) {

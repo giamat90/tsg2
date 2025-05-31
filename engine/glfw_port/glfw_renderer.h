@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../tsg2.h"
-#include "renderer.h"
+#include "../renderer.h"
 #include "glfw_window.h"
 #include "shader.h"
 #include "vertex.h"

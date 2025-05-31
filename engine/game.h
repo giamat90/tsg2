@@ -35,7 +35,7 @@ protected: // virtual methods
 protected:
 	void create_window(std::string title, window::width_t w, window::height_t h);
 	void create_renderer();
-	void create_keyboard_input();
+	void create_input();
 	void create_timer(const unsigned fps);
 	texture* create_texture(const std::string&);
 	texture* create_texture(surface*);
