@@ -6,6 +6,7 @@
 #include "input.h"
 #include "game_timer.h"
 #include "texture.h"
+#include "physics.h"
 #include <tsg/types.h>
 
 class TSG2_API game : public tsg::non_copyable
@@ -41,11 +42,21 @@ protected:
 	texture* create_texture(surface*);
 	bool initialize_externals();
 	void quit();
+	inline void add_drawable(drawable* d) {
+		m_renderer->add_drawable(d);
+	}
+	inline void add_playable(input::playable_object* o) {
+		m_input->add_playable(o);
+	}
+	inline void add_physical_object(physics::physical_object* o) {
+		m_physics->add_physical_object(o);
+	}
 protected: // attributes
 	GAME_STATE m_state{ GAME_STATE::NONE };
 	window* m_window{ nullptr };
 	renderer* m_renderer{ nullptr };
 	input* m_input{ nullptr };
+	physics* m_physics{ nullptr };
 	game_timer* m_timer{ nullptr };
 
 };

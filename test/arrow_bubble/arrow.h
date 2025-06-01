@@ -2,8 +2,9 @@
 
 #include <game_object.h>
 #include <input.h>
+#include <physics.h>
 
-class arrow : public dynamic_object, public playable_object {
+class arrow : public dynamic_object, public input::playable_object, public physics::physical_object {
 public:
 	arrow();
 	~arrow() = default;

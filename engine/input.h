@@ -2,10 +2,18 @@
 
 #include "tsg2.h"
 #include "window.h"
-#include "game_object.h"	// playable
 #include <vector>
 
+
+
 class TSG2_API input {
+public:
+	class TSG2_API playable_object {
+	public:
+		playable_object() = default;
+		virtual ~playable_object() = default;
+		virtual void process_input(input*) = 0;
+	};
 public:
 	enum class INPUT_TYPE {
 		KEYBOARD,
@@ -73,9 +81,12 @@ public:
 	virtual bool is_mouse_clicked(const INPUT_MOUSE side) = 0;
 	virtual bool is_mouse_pressed(const INPUT_MOUSE side) = 0;
 	virtual bool is_mouse_released(const INPUT_MOUSE side) = 0;
+	// gamepad
+	/* TODO */
 	// joystick
 	/* TODO */
 public:
+	// TODO: evalueate to made it private and friendable of game
 	inline void add_playable(playable_object* d) {
 		m_playables.push_back(d);
 	}

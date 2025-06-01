@@ -45,10 +45,12 @@ void triangle_game::initialize_objects() {
 	m_arrow.init();
 	m_bubble.init();
 	// render engine stuff
-	m_renderer->add_drawable(&m_arrow);
-	m_renderer->add_drawable(&m_bubble);
+	add_drawable(&m_arrow);
+	add_drawable(&m_bubble);
 	// input engine stuff
-	//m_input->add_playable(&m_arrow);
+	add_playable(&m_arrow);
+	// physic engine stuff
+	add_physical_object(&m_arrow);
 
 }
 
@@ -65,6 +67,7 @@ void triangle_game::process_input() {
 
 void triangle_game::update_game() {
 	auto tick = m_timer->tick();
+	m_physics->update(tick);
 	m_bubble.update(tick);
 	m_arrow.update(tick);
 	/* ToDo */

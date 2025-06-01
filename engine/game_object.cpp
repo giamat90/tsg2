@@ -18,9 +18,3 @@ dynamic_object::~dynamic_object() = default;
 trigger_object::trigger_object() = default;
 trigger_object::~trigger_object() = default;
 
-physical_object::physical_object() = default;
-physical_object::~physical_object() = default;
-
-playable_object::playable_object() = default;
-playable_object::~playable_object() = default;
-

@@ -3,9 +3,6 @@
 #include "tsg2.h"
 #include "texture.h"
 
-// forward declaration for playable_object
-class input;
-
 class TSG2_API game_object {
 public:
 	game_object();
@@ -49,17 +46,4 @@ public:
 	virtual ~trigger_object();
 };
 
-/* physical_object to detect collisions */
-class TSG2_API physical_object : public game_object {
-public:
-	physical_object();
-	virtual ~physical_object();
-protected:
-};
 
-class TSG2_API playable_object {
-public:
-	playable_object();
-	virtual ~playable_object();
-	virtual void process_input(input*) = 0;
-};
