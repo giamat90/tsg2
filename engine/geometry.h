@@ -92,7 +92,7 @@ namespace geometry {
 		// sum between vectors
 		inline vector<Dim>& operator+=(const vector<Dim>& other) {
 			for (size_t i = 0u; i < Dim; ++i) {
-				m_v[i] = other.m_v[i];
+				m_v[i] += other.m_v[i];
 			}
 			return *this;
 		}

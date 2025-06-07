@@ -21,8 +21,7 @@ void arrow::update(const float delta_time) {
 
 void arrow::process_input(input* input) {
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_W)) {
-		tsg::print("Key w pressed!!! :D");
-		m_linear_speed = 10.0f;
+		m_linear_speed = 1.0;
 
 		/* Go up */
 	}
@@ -30,6 +29,7 @@ void arrow::process_input(input* input) {
 		/* Go left */
 	}
 	else if (input->is_key_pressed(input::INPUT_KEY::KEY_S)) {
+		m_linear_speed = -1.0;
 		/* Go down */
 	}
 	else if (input->is_key_pressed(input::INPUT_KEY::KEY_D)) {
@@ -40,6 +40,7 @@ void arrow::process_input(input* input) {
 	}
 	else {
 		tsg::print("Key w not pressed!!! D:");
+		m_linear_speed = 0.0f;
 	}
 
 }
