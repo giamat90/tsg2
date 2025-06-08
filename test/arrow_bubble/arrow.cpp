@@ -16,30 +16,38 @@ void arrow::update(const float delta_time) {
 	/* ToDo */
 	physical_object::update(delta_time);
 	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y]));
+	m_texture->set_rotation(m_rotation);
 }
 
 void arrow::process_input(input* input) {
+	m_linear_speed.zero();
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_W)) {
-		m_linear_speed = 1.0;
-
 		/* Go up */
+		m_linear_speed += geometry::point3D(0.0, 1.0, 0.0);
 	}
-	else if (input->is_key_pressed(input::INPUT_KEY::KEY_A)) {
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_A)) {
 		/* Go left */
+		m_linear_speed += geometry::point3D(-1.0, 0.0, 0.0);
 	}
-	else if (input->is_key_pressed(input::INPUT_KEY::KEY_S)) {
-		m_linear_speed = -1.0;
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_S)) {
 		/* Go down */
+		m_linear_speed += geometry::point3D(0.0, -1.0, 0.0);
 	}
-	else if (input->is_key_pressed(input::INPUT_KEY::KEY_D)) {
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_D)) {
 		/* Go right */
+		m_linear_speed += geometry::point3D(1.0, 0.0, 0.0);
 	}
-	else if (input->is_key_pressed(input::INPUT_KEY::KEY_SPACE)) {
+
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_LEFT)) {
+		/* Rotate left */
+		m_rotation += 0.05f;
+	}
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_RIGHT)) {
+		/* Rotate right */
+		m_rotation += -0.05f;
+	}
+
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_SPACE)) {
 		/* JUMP */
 	}
-	else {
-		tsg::print("Key w not pressed!!! D:");
-		m_linear_speed = 0.0f;
-	}
-
 }

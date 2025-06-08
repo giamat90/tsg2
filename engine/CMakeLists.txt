@@ -27,8 +27,13 @@ if(USE_GLFW)
 		"${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/*.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/*.h"
 	)
+	
+	# set to have shaders with other sources
+	file(GLOB SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/shaders/*.shad")
+	
+	target_sources(engine PRIVATE ${GLFW_PORT_SOURCES} ${SHADERS})
 
-	target_sources(engine PRIVATE ${GLFW_PORT_SOURCES})
+	set_source_files_properties(${SHADERS} PROPERTIES HEADER_FILE_ONLY TRUE)
 	
 	source_group("engine\\glfw_port" FILES ${GLFW_PORT_SOURCES})
 	

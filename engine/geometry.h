@@ -69,6 +69,12 @@ namespace geometry {
 		template <typename = std::enable_if<Dim == 3u, void>>
 		inline scalar get_z() const { return m_v[2]; }	
 	public:
+		void zero() {
+			for (size_t i = 0u; i < Dim; ++i) {
+				m_v[i] = scalar();
+			}
+		}
+	public:
 		/* Operator overloading */
 		// operator[]
 		inline scalar& operator[](const AXES a) override {

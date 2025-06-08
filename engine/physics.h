@@ -9,7 +9,7 @@ class TSG2_API physics {
 	/* Support classes */
 public:
 	/* Class of physical world that determine limits and other stuffs */
-	class physical_world {
+	class TSG2_API physical_world {
 	public:
 		physical_world() = default;
 		~physical_world() = default;
@@ -31,8 +31,8 @@ public:
 		physical_world* m_world{ nullptr };
 		geometry::point3D m_position{};
 		//geometry::point3D m_rotation{};
+		geometry::point3D m_linear_speed{};
 		geometry::scalar m_rotation{};
-		geometry::scalar m_linear_speed{};
 		geometry::scalar m_angular_speed{};
 		geometry::scalar m_direction{};
 		geometry::scalar m_normal{};
