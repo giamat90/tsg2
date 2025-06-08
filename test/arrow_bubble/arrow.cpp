@@ -1,5 +1,6 @@
 #include "arrow.h"
 #include <texture.h>
+#include <tsg/os.h>
 
 arrow::arrow() {
 	m_texture = texture::create_texture();
@@ -7,9 +8,7 @@ arrow::arrow() {
 
 void arrow::init() {
 	m_texture->set_size(25, 25);
-	//m_texture->load("C:\\tsg2\\test\\arrow_bubble\\assets\\arrow.png");
-	//m_texture->load("C:\\tsg2\\test\\arrow_bubble\\assets\\arrow_cut.jpg");
-	m_texture->load("C:\\tsg2\\test\\arrow_bubble\\assets\\arrow.jpg");
+	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\arrow.jpg")).string());
 	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y]));
 }
 

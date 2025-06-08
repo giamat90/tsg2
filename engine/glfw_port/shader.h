@@ -2,6 +2,7 @@
 
 #include <tsg/types.h>
 #include <glad/gl.h>
+#include <filesystem>
 
 class shader : public tsg::adapter_v<GLuint>{
 public:

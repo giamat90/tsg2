@@ -16,6 +16,7 @@ if(USE_GLFW)
 
 	# Linking engine libs
 	target_link_libraries(hello_triangle PRIVATE engine)
+	target_link_libraries(hello_triangle PRIVATE tsg)
 	# Linking GLFW libs
 	target_link_directories(hello_triangle PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/")
 	target_link_libraries(hello_triangle PRIVATE glfw3.lib)
@@ -27,6 +28,13 @@ if(USE_GLFW)
 	else()
 		target_compile_options(hello_triangle PRIVATE -Wall -Wextra)
 	endif()
+
+	add_custom_command(TARGET hello_triangle POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/assets
+		$<TARGET_FILE_DIR:hello_triangle>/assets
+		COMMENT "Copying shares files to build directory"
+	)
 endif()
 
 

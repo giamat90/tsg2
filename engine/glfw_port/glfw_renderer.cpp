@@ -3,6 +3,7 @@
 #include "glfw_font.h"
 #include <geometry.h>
 #include <tsg/io.h>	// print
+#include <tsg/os.h> // get_exe_path
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
@@ -19,14 +20,13 @@ glfw_renderer::glfw_renderer(glfw_window * w) : renderer(w) {
 	if (0 == gladLoadGL(glfwGetProcAddress)) {
 		throw exception("gladLoadGL Error");
 	};
-
 	glfwSwapInterval(1);
-
-	//m_s.init("C:\\tsg2\\test\\arrow_bubble\\shaders\\texture.vert.shad", "C:\\tsg2\\test\\arrow_bubble\\shaders\\texture.frag.shad");
-	m_shader.init("C:\\tsg2\\test\\arrow_bubble\\shaders\\texture_transform.vert.shad", "C:\\tsg2\\test\\arrow_bubble\\shaders\\texture_transform.frag.shad");
-	//m_s.init("C:\\tsg2\\test\\arrow_bubble\\shaders\\sprite.vert.shad", "C:\\tsg2\\test\\arrow_bubble\\shaders\\sprite.frag.shad");
+	
+	m_shader.init(
+		(tsg::os::get_exe_path() / std::filesystem::path("shaders\\texture_transform.vert.shad")).string().c_str(),
+		(tsg::os::get_exe_path() / std::filesystem::path("shaders\\texture_transform.frag.shad")).string().c_str()
+	);
 	m_vertex.init();
-
 }
 
 glfw_renderer::~glfw_renderer() {

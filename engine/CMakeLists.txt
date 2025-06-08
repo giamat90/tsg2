@@ -15,16 +15,17 @@ source_group("sources" FILES ${ENGINE_SOURCES})
 
 include_directories(${CMAKE_SOURCE_DIR}/externals/tsg/include)
 
+# Linking tsg lib
+target_link_libraries(engine PRIVATE tsg)
+
 # add necessary simbols to export the dll
 add_compile_definitions(TSG2_EXPORT)
 
 if(USE_GLFW)
 	# Add GLFW port sources to engine library
-	#set(GLAD_GL "${GLFW_SOURCE_DIR}/deps/glad/gl.h")
 	file(GLOB GLFW_PORT_SOURCES 
 		"${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/*.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/*.h"
-	#	${GLAD_GL}
 	)
 
 	target_sources(engine PRIVATE ${GLFW_PORT_SOURCES})
@@ -43,13 +44,14 @@ if(USE_GLFW)
 	target_link_libraries(engine PRIVATE glfw3.lib)
 	
 	add_compile_definitions(GLFW_INCLUDE_NONE)
-#	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "Active(Release)")
-#		target_link_libraries(engine PRIVATE glfw3)
-#		target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/Release")
-#	else()
-#		target_link_libraries(engine PRIVATE glfw3)
-#		target_link_directories(engine PRIVATE "${CMAKE_SOURCE_DIR}/externals/GLFW/lib/Debug")
-#	endif()
+
+	add_custom_command(TARGET engine POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/shaders
+		$<TARGET_FILE_DIR:engine>/shaders
+		COMMENT "Copying shares files to build directory"
+	)
+
 endif()
 
 if(USE_SDL)
