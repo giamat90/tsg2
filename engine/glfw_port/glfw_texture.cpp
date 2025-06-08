@@ -64,7 +64,7 @@ void glfw_texture::load(const std::string& asset){
 
         }
         else {
-            tsg::print("Error loading texture {}", asset);
+            tsg::print("Error loading texture {}, reason {}", asset, stbi_failure_reason());
         }
         stbi_image_free(data);
     }

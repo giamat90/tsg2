@@ -101,6 +101,12 @@ namespace geometry {
 				m_v[i] += other.m_v[i];
 			}
 			return *this;
+		}		
+		inline vector<Dim>& operator-=(const vector<Dim>& other) {
+			for (size_t i = 0u; i < Dim; ++i) {
+				m_v[i] -= other.m_v[i];
+			}
+			return *this;
 		}
 		// multiply for a scalar
 		inline vector<Dim> operator*(const scalar k) {

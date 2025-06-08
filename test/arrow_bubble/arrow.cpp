@@ -1,6 +1,7 @@
 #include "arrow.h"
 #include <texture.h>
 #include <tsg/os.h>
+#include <cmath>
 
 arrow::arrow() {
 	m_texture = texture::create_texture();
@@ -8,7 +9,7 @@ arrow::arrow() {
 
 void arrow::init() {
 	m_texture->set_size(25, 25);
-	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\arrow.jpg")).string());
+	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\arrow2.png")).string());
 	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y]));
 }
 
@@ -45,6 +46,14 @@ void arrow::process_input(input* input) {
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_RIGHT)) {
 		/* Rotate right */
 		m_rotation += -0.05f;
+	}
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_UP)) {
+		/* Rotate right */
+		m_linear_speed += geometry::point3D(std::cos(m_rotation), std::sin(m_rotation), 0.0f);
+	}
+	if (input->is_key_pressed(input::INPUT_KEY::KEY_DOWN)) {
+		/* Rotate right */
+		m_linear_speed -= geometry::point3D(std::cos(m_rotation), std::sin(m_rotation), 0.0f);
 	}
 
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_SPACE)) {

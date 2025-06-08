@@ -48,6 +48,8 @@ void glfw_renderer::render() {
 		glViewport(0, 0, width, height);
 		glClearColor(0.1f, 0.2f, 0.3f, 1.0f);		// petrolio
 		//glClearColor(0.86f, 0.86f, 0.86f, 1.0f);	// gray
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		gl_check_error(__FILE__, __LINE__);
 
