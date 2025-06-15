@@ -11,6 +11,7 @@ texture* texture::create_texture() {
 }
 
 glfw_texture::glfw_texture(int w, int h, const std::string& a) : texture(w, h, a) {  }
+glfw_texture::~glfw_texture() { unload(); }
 
 void glfw_texture::load(const std::string& asset){
     if (!asset.empty()) {
@@ -18,10 +19,8 @@ void glfw_texture::load(const std::string& asset){
             unload();
         }
 
-        int width;
-        int height;
         int nrChannels;
-        unsigned char* data = stbi_load(asset.c_str(), &width, &height, &nrChannels, 0);
+        unsigned char* data = stbi_load(asset.c_str(), &m_width, &m_height, &nrChannels, 0);
         if (data) {
             GLenum rgba_format;
             switch (nrChannels)
@@ -48,7 +47,7 @@ void glfw_texture::load(const std::string& asset){
             gl_check_error(__FILE__, __LINE__);
 
             // Upload image data to GPU
-            glTexImage2D(GL_TEXTURE_2D, 0, rgba_format, width, height, 0, rgba_format, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_2D, 0, rgba_format, m_width, m_height, 0, rgba_format, GL_UNSIGNED_BYTE, data);
             gl_check_error(__FILE__, __LINE__);
 
             // Generate mipmaps

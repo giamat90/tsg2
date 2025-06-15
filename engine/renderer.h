@@ -26,7 +26,7 @@ public: // pure-virtual methods
 	virtual void draw(sprite*) = 0;
 	virtual void draw(texture*) = 0;
 	virtual void draw(font*) = 0;
-	virtual void draw(geometry::rectangle&) = 0;
+	virtual void draw(geometry::shape*) = 0;
 public:
 	// TODO: evalueate to made it private and friendable of game
 	inline void add_drawable(drawable* d){

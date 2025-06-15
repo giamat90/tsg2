@@ -24,6 +24,7 @@ public:
 	inline scale get_scale() { return m_scale; }
 	inline position get_where() { return m_position; }
 	inline angle get_rotation() { return m_angle; }
+	inline position get_size() { return position(m_width, m_height); }
 public: // factory-method
 	static texture* create_texture();
 protected:

@@ -27,7 +27,7 @@ public: // overrided methods
 	void draw(sprite*) override final;
 	void draw(texture*) override final;
 	void draw(font*) override final;
-	void draw(geometry::rectangle&) override final;
+	void draw(geometry::shape*) override final;
 private:
 	shader m_shader;
 	sprite_vertex m_vertex;

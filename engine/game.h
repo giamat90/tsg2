@@ -32,6 +32,9 @@ protected: // virtual methods
 	virtual void update_game() = 0;
 	/* Create video output */
 	virtual void generate_output() = 0;
+	/* Set game physics proprieties */
+	virtual void create_physics() = 0;
+	/* initialize objects */
 	virtual void initialize_objects() = 0;
 protected:
 	void create_window(std::string title, window::width_t w, window::height_t h);

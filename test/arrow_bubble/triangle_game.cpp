@@ -2,7 +2,15 @@
 #include <tsg/io.h>
 #include "game_event.h"
 
-triangle_game::triangle_game() /*: m_arrow(m_input)*/  {
+#define EXCLUDE_BUBBLE 1
+
+#if EXCLUDE_BUBBLE
+#define INCLUDE_BUBBLE( code ) /* code */
+#else
+#define INCLUDE_BUBBLE( code ) code
+#endif
+
+triangle_game::triangle_game() : game()/*: m_arrow(m_input)*/  {
 	tsg::print("triangle ctor");
 }
 
@@ -17,6 +25,7 @@ bool triangle_game::initialize() {
 		create_renderer();
 		create_input();
 		create_timer(60u);
+		create_physics();
 		initialize_objects();
 		m_state = GAME_STATE::RUNNING;
 		res = true;
@@ -40,18 +49,24 @@ void triangle_game::shutdown() {
 	quit();
 }
 
+void triangle_game::create_physics() {
+	/* TODO */
+	geometry::scalar factor = 1.0f;
+	m_physics->set_limits(m_window->get_width()*factor, m_window->get_height()* factor);
+}
+
 void triangle_game::initialize_objects() {
 	/* ToDo */
-	m_arrow.init();
-	m_bubble.init();
-	// render engine stuff
-	add_drawable(&m_arrow);
-	add_drawable(&m_bubble);
 	// input engine stuff
 	add_playable(&m_arrow);
 	// physic engine stuff
 	add_physical_object(&m_arrow);
-
+	// render engine stuff
+	add_drawable(&m_arrow);
+	INCLUDE_BUBBLE(add_drawable(&m_bubble);)
+	/* initialize objects */
+	m_arrow.init();
+	INCLUDE_BUBBLE(m_bubble.init();)
 }
 
 void triangle_game::process_input() {
@@ -75,5 +90,6 @@ void triangle_game::update_game() {
 
 void triangle_game::generate_output() {
 	m_renderer->render();
+	//m_renderer->draw(m_arrow.get_box());
 	/* ToDo */
 }

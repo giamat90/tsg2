@@ -8,7 +8,7 @@ bubble::bubble() {
 
 void bubble::init() {
 	m_texture->set_size(50, 50);
-	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\bubble.jpg")).string());
+	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\bubble.png")).string());
 	m_texture->set_where(texture::position(-0.75f, -0.75f));
 	//m_texture->set_where(texture::texture_position(0.0f, 0.0f));
 }

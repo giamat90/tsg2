@@ -5,16 +5,27 @@
 #include <geometry.h>
 #include <vector>
 
+using geometry::scalar;
+
 class TSG2_API physics {
 	/* Support classes */
 public:
 	/* Class of physical world that determine limits and other stuffs */
+	class physical_object; // forward declaration
 	class TSG2_API physical_world {
+		friend physics;
 	public:
 		physical_world() = default;
 		~physical_world() = default;
+	public:
+		void compute();
+		geometry::vector<2> get_scale() { return m_scale; }
 	protected:
-		geometry::rectangle m_limits;
+		std::vector<physical_object*> m_objects;
+		geometry::box3D m_limits;
+		geometry::vector<2> m_scale;
+		geometry::vector<3> m_forces;
+
 	};
 	/* physical_object to compute motion and collisions */
 	class TSG2_API physical_object : public updateable {
@@ -26,32 +37,52 @@ public:
 		void set_physical_world(physical_world* const world) { m_world = world; }
 	public:
 		// updateable method overrides
-		void update(const float delta_time) override;
+		void update(const geometry::scalar delta_time) override;
+	public:
+		void translate(const geometry::point3D& t);
+		void rotate(const geometry::scalar angle);
+	public:
+		void set_box(const geometry::point3D& a, const geometry::point3D& b) {
+			m_box = 
+			{
+				{m_world->get_scale().get_x() * a.get_x(), m_world->get_scale().get_y() * a.get_y(), scalar(0)},
+				{m_world->get_scale().get_x() * b.get_x(), m_world->get_scale().get_y() * b.get_y(), scalar(0)}
+			};
+		}
+		geometry::box3D get_box() const { return m_box; }
 	protected:
 		physical_world* m_world{ nullptr };
 		geometry::point3D m_position{};
-		//geometry::point3D m_rotation{};
-		geometry::point3D m_linear_speed{};
+		geometry::point3D m_velocity{};
+		geometry::point3D m_acceleration{};
 		geometry::scalar m_rotation{};
+		geometry::box3D m_box;
 		geometry::scalar m_angular_speed{};
-		geometry::scalar m_direction{};
-		geometry::scalar m_normal{};
+		geometry::scalar m_inverse_mass{};
 	};
 public:
 	/* ctors and dtors methods */
-	physics() = default;
-	~physics() = default;
+	physics();
+	~physics();
+public:
+	// set proprieties
+	void set_limits(const geometry::scalar width, const geometry::scalar height) {
+		m_world->m_scale = { 1.0f / (0.5f * width) , 1.0f / (0.5f * height) };
+		m_world->m_limits = { { -1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f} };
+	}
 public:
 	inline void update(const float delta_time) {
 		for (auto o : m_physical_object) {
 			o->update(delta_time);
 		}
+		m_world->compute();
 	}
 public:
 	// TODO: evalueate to made it private and friendable of game
 	inline void add_physical_object(physical_object* o) {
 		o->m_world = m_world;
 		m_physical_object.push_back(o);
+		m_world->m_objects.push_back(o);
 	}
 protected:
 	physical_world* m_world{ nullptr };

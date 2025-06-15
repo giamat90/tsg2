@@ -40,6 +40,7 @@ void game::create_timer(const unsigned fps) {
 }
 
 texture* game::create_texture(const std::string& p) {
+	throw;
 	/*
 	glfw_Surface* tmp_surf = IMG_Load(p.c_str());
 	auto tmp_renderer = dynamic_cast<glfw_renderer*>(m_renderer);
@@ -58,6 +59,7 @@ texture* game::create_texture(const std::string& p) {
 }
 
 texture* game::create_texture(surface* s) {
+	throw;
 	/*
 	auto tmp_surf = glfw_converter::convert(*s);
 	auto tmp_renderer = dynamic_cast<glfw_renderer*>(m_renderer);

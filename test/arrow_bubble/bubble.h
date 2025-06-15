@@ -1,8 +1,9 @@
 #pragma once
 
 #include <game_object.h>
+#include <physics.h>
 
-class bubble : public dynamic_object {
+class bubble : public dynamic_object, public physics::physical_object {
 public:
 	bubble();
 	~bubble() = default;
