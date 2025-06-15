@@ -7,18 +7,19 @@ bubble::bubble() {
 }
 
 void bubble::init() {
-	m_texture->set_size(50, 50);
 	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\bubble.png")).string());
 	m_texture->set_where(texture::position(-0.75f, -0.75f));
-	//m_texture->set_where(texture::texture_position(0.0f, 0.0f));
+	auto w = m_texture->get_size().get_x();
+	auto h = m_texture->get_size().get_y();
+	set_box(m_position - geometry::point3D(w / scalar(2), h / scalar(2), 0.0f), m_position + geometry::point3D(w / scalar(2), h / scalar(2), 0.0f));
 }
 
 void bubble::update(const float delta_time) {
 	/* ToDo */
-	float delta = delta_time;
-	m_texture->set_where(texture::position(
-		m_texture->get_where().get_x() + delta,
-		m_texture->get_where().get_y() + delta));
-	m_texture->set_rotation(m_texture->get_rotation() + (1.0f / delta_time));
-	m_texture->set_scale(1.0f);
+	m_velocity = { scalar(1), scalar(1), scalar(0) };
+	m_rotation = scalar(1) / delta_time;
+	//
+	physical_object::update(delta_time);
+	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y]));
+	m_texture->set_rotation(m_rotation);
 }

@@ -13,13 +13,13 @@ physics::~physics() {
 }
 
 void physics::physical_world::compute() {
-	tsg::print("World box: bottom(x, y, z) = ({}, {}, {})\ttop(x, y, z) = ({}, {}, {})",
+	/*	tsg::print("World box: bottom(x, y, z) = ({}, {}, {})\ttop(x, y, z) = ({}, {}, {})",
 		m_limits.get_bottom().get_x(), m_limits.get_bottom().get_y(), m_limits.get_bottom().get_z(),
-		m_limits.get_top().get_x(), m_limits.get_top().get_y(), m_limits.get_top().get_z());
+		m_limits.get_top().get_x(), m_limits.get_top().get_y(), m_limits.get_top().get_z());*/
 	for (auto obj : m_objects) {
-		tsg::print("Object box: bottom(x, y, z) = ({}, {}, {})\ttop(x, y, z) = ({}, {}, {})",
-			obj->m_box.get_bottom().get_x(), obj->m_box.get_bottom().get_y(), obj->m_box.get_bottom().get_z(),
-			obj->m_box.get_top().get_x(), obj->m_box.get_top().get_y(), obj->m_box.get_top().get_z());
+		//tsg::print("Object box: bottom(x, y, z) = ({}, {}, {})\ttop(x, y, z) = ({}, {}, {})",
+		//	obj->m_box.get_bottom().get_x(), obj->m_box.get_bottom().get_y(), obj->m_box.get_bottom().get_z(),
+		//	obj->m_box.get_top().get_x(), obj->m_box.get_top().get_y(), obj->m_box.get_top().get_z());
 		auto translation = geometry::point3D();
 		// compute if the new position is inside the world, else translate it
 		if (obj->m_box.get_max(AXES::X) > m_limits.get_max(AXES::X)) {

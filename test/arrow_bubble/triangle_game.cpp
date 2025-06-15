@@ -2,7 +2,7 @@
 #include <tsg/io.h>
 #include "game_event.h"
 
-#define EXCLUDE_BUBBLE 1
+#define EXCLUDE_BUBBLE 0
 
 #if EXCLUDE_BUBBLE
 #define INCLUDE_BUBBLE( code ) /* code */
@@ -61,6 +61,7 @@ void triangle_game::initialize_objects() {
 	add_playable(&m_arrow);
 	// physic engine stuff
 	add_physical_object(&m_arrow);
+	INCLUDE_BUBBLE(add_physical_object(&m_bubble));
 	// render engine stuff
 	add_drawable(&m_arrow);
 	INCLUDE_BUBBLE(add_drawable(&m_bubble);)
@@ -90,6 +91,6 @@ void triangle_game::update_game() {
 
 void triangle_game::generate_output() {
 	m_renderer->render();
-	//m_renderer->draw(m_arrow.get_box());
+	m_renderer->draw(m_arrow.get_box());
 	/* ToDo */
 }

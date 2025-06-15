@@ -28,6 +28,7 @@ public: // overrided methods
 	void draw(texture*) override final;
 	void draw(font*) override final;
 	void draw(geometry::shape*) override final;
+	void draw(const geometry::box3D&) override final;
 private:
 	shader m_shader;
 	sprite_vertex m_vertex;

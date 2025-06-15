@@ -122,3 +122,24 @@ void glfw_renderer::draw(geometry::shape* r) {
 	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	//gl_check_error(__FILE__, __LINE__);
 }
+
+void glfw_renderer::draw(const geometry::box3D& box) {		
+	// use programs previously loaded
+	m_shader.use();
+	// use vertexes previously loaded
+	m_vertex.use();
+	glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+	transform = glm::translate(transform, glm::vec3(box.get_center().get_x(), box.get_center().get_y(), 0.0f));
+	transform = glm::rotate(transform, 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	unsigned int transformLoc = glGetUniformLocation(*m_shader.get_adaptee(), "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+	gl_check_error(__FILE__, __LINE__);
+
+	//glBindTexture(GL_TEXTURE_2D, *(texture->get_adaptee()));
+	gl_check_error(__FILE__, __LINE__);
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	gl_check_error(__FILE__, __LINE__);
+
+}
