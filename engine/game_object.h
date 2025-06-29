@@ -2,6 +2,8 @@
 
 #include "tsg2.h"
 #include "texture.h"
+#include "geometry.h"
+
 
 class TSG2_API game_object {
 public:
@@ -25,7 +27,7 @@ class TSG2_API updateable : public game_object {
 public:
 	updateable();
 	virtual ~updateable();
-	virtual void update(const float delta_time) = 0;
+	virtual void update(const geometry::scalar delta_time) = 0;
 };
 
 class TSG2_API static_object : public drawable {

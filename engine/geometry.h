@@ -2,8 +2,12 @@
 
 #include "tsg2.h"
 #include <tsg/io.h>
+#include <tsg/math.h>
 #include <initializer_list>
 #include <cassert>
+#include <cmath>
+
+//#define DOUBLE_PRECISION
 
 namespace geometry {
 	enum AXES {
@@ -27,12 +31,39 @@ namespace geometry {
 		PYRAMID
 	};
 
-	enum class PRECISION {
-		SINGLE,
-		DOUBLE
-	};
-
+#ifdef DOUBLE_PRECISION
+	using scalar = double;
+	using degree_t = tsg::degree<scalar>;
+	scalar inline sqrt(const scalar v) {
+		return std::sqrt(v);
+	}
+	scalar inline arccos(const scalar v) {
+		return std::acos(v);
+	}
+	scalar inline cos(const scalar v) {
+		return std::cos(v);
+	}
+	scalar inline sin(const scalar v) {
+		return std::sin(v);
+	}
+#else
 	using scalar = float;
+	using degree_t = tsg::degree<scalar>;
+	scalar inline sqrt(const scalar v) {
+		return std::sqrtf(v);
+	}
+	scalar inline arccos(const scalar v) {
+		return std::acosf(v);
+	}
+	scalar inline cos(const scalar v) {
+		return std::cosf(v);
+	}
+	scalar inline sin(const scalar v) {
+		return std::sinf(v);
+	}
+#endif
+
+
 
 	class TSG2_API position {
 	public:
@@ -100,7 +131,43 @@ namespace geometry {
 			}
 		}
 	public:
+		scalar get_norm() const 
+		{
+			scalar value{};
+			for (std::size_t i = 0u; i < Dim; ++i) {
+				value += m_v[i] * m_v[i];
+			}
+			return sqrt(value);
+		}
+		vector<Dim> get_normalized() {
+			scalar norm = get_norm();
+			if (norm > scalar(0)) {
+				scalar inverse_norm = scalar(1) / norm;
+				return inverse_norm * (*this);
+			}
+			tsg::print("Can't normalize a vector of norm 0");
+			throw;
+		}
+		void normalize() {
+			scalar norm = get_norm();
+			if (norm > scalar(0)) {
+				scalar inverse_norm{ scalar(1) / norm };
+				for (std::size_t i = 0u; i < Dim; ++i) {
+					m_v[i] *= inverse_norm;
+				}
+			}
+			else {
+				tsg::print("Can't normalize a vector of norm 0");
+				throw;
+			}
+		};
+	public:
 		// getters
+		template <AXES a>
+		inline scalar get() {
+			static_assert(a < Dim);
+			return m_v[a];
+		}
 		inline scalar get_x() const { return m_v[0]; }
 		inline scalar get_y() const { return m_v[1]; }
 		template <typename = std::enable_if<Dim == 3u, void>>
@@ -111,27 +178,31 @@ namespace geometry {
 			for (size_t i = 0u; i < Dim; ++i) {
 				m_v[i] = scalar();
 			}
+			m_type = TYPE::ZERO;
 		}
-		bool is_zero() const {
+		bool is_zero() {
 			for (size_t i = 0u; i < Dim; ++i) {
 				if (m_v[i] > scalar() || m_v[i] < scalar()) {
 					return false;
 				}
 			}
+			m_type = TYPE::ZERO;
 			return true;
 		}
 		void one() {
 			for (size_t i = 0u; i < Dim; ++i) {
 				m_v[i] = scalar(1);
 			}
+			m_type = TYPE::ONE;
 		}
-		bool is_one() const {
+		bool is_one() {
 			auto acc = scalar(1);
 			for (size_t i = 0u; i < Dim; ++i) {
 				if ((acc *= m_v[i]) != scalar(1)) {
 					return false;
 				}
 			}
+			m_type = TYPE::ONE;
 			return true;
 		}
 	public:
@@ -176,7 +247,7 @@ namespace geometry {
 			lhs -= rhs;
 			return lhs;
 		}
-		// multiply for a scalar
+		// multiply for a scalar lhs
 		/* for k * vec */
 		inline vector<Dim> operator*(const scalar k) {
 			vector<Dim> ret(scalar(1));
@@ -189,8 +260,44 @@ namespace geometry {
 		inline friend vector<Dim> operator*(const scalar k, vector<Dim> vec) {
 			return  vec.operator*(k);
 		};
+
+		static scalar dot(vector<Dim> lhs, vector<Dim> rhs){
+			scalar value{ scalar(0) };
+			for (std::size_t i = 0u; i < Dim; ++i) {
+				value += lhs.m_v[i] * rhs.m_v[i];
+			}
+			return value;
+		}
+
+		static vector<Dim> cross() {
+			/*TODO*/
+			tsg::print("Ooops it seems you call something not implemented yet!");
+			throw;
+		}
+
+		scalar get_angle(const vector<Dim>& other) {
+			if (TYPE::ONE == m_type) {
+				return arccos(*this->dot(other) / other.get_norm());
+			}
+			else if (TYPE::ONE == other.m_type) {
+				return arccos(*this->dot(other) / get_norm());
+			}
+			else if (TYPE::ONE == m_type && TYPE::ONE == other.m_type) {
+				return arccos(*this->dot(other));
+			}
+			else {
+				return arccos(*this->dot(other) / (get_norm() * other.get_norm()));
+			}
+		}
+	private:
+		enum class TYPE {
+			NONE,
+			ZERO,
+			ONE
+		};
 	private:
 		scalar m_v[Dim];
+		TYPE m_type{ TYPE::NONE };
 	};
 
 	using point2D = vector<2>;
@@ -248,8 +355,11 @@ namespace geometry {
 		// setter
 		inline void set_center(const vector<Dim>& c) { 
 			m_center = c; 
-			m_a = { m_center.get_x() + m_width * 0.5f, m_center.get_y() + m_height * 0.5f, m_center.get_z() + m_depth * 0.5f };
-			m_b = { m_center.get_x() - m_width * 0.5f, m_center.get_y() - m_height * 0.5f, m_center.get_z() - m_depth * 0.5f};
+			m_a = { m_center.get_x() - m_width * 0.5f, m_center.get_y() + m_height * 0.5f, m_center.get_z() + m_depth * 0.5f };
+			m_b = { m_center.get_x() + m_width * 0.5f, m_center.get_y() + m_height * 0.5f, m_center.get_z() - m_depth * 0.5f };
+			m_c = { m_center.get_x() - m_width * 0.5f, m_center.get_y() - m_height * 0.5f, m_center.get_z() + m_depth * 0.5f };
+			m_d = { m_center.get_x() + m_width * 0.5f, m_center.get_y() - m_height * 0.5f, m_center.get_z() - m_depth * 0.5f };
+
 		}
 		inline void set_top(const vector<Dim>& x) { m_a = x; };
 		inline void set_bottom(const vector<Dim>& y) { m_b = y; };
@@ -257,6 +367,11 @@ namespace geometry {
 		inline vector<Dim> get_top() const { return m_a; };
 		inline vector<Dim> get_bottom() const { return m_b; };
 		inline vector<Dim> get_center() const { return m_center; };
+		template <AXES Ax>
+		inline vector<Dim> get_max_point() const {
+			static_assert(Ax < Dim);
+			return m_a[Ax] > m_b[Ax] ? m_a : m_b;
+		}
 		inline scalar get_width() const { return m_width; };
 		inline scalar get_height() const { return m_height; };
 		inline scalar get_depth() const { return m_depth; };
@@ -291,6 +406,8 @@ namespace geometry {
 		vector<Dim> m_center{};
 		vector<Dim> m_a{};
 		vector<Dim> m_b{};
+		vector<Dim> m_c{};
+		vector<Dim> m_d{};
 		scalar m_width{};	// width
 		scalar m_height{};	// height
 		scalar m_depth{};	// depth

@@ -3,11 +3,18 @@
 #include "game_event.h"
 
 #define EXCLUDE_BUBBLE 0
+#define EXCLUDE_ARROW 1
 
 #if EXCLUDE_BUBBLE
 #define INCLUDE_BUBBLE( code ) /* code */
 #else
 #define INCLUDE_BUBBLE( code ) code
+#endif
+
+#if EXCLUDE_ARROW
+#define INCLUDE_ARROW( code ) /* code */
+#else
+#define INCLUDE_ARROW( code ) code
 #endif
 
 triangle_game::triangle_game() : game()/*: m_arrow(m_input)*/  {
@@ -51,23 +58,25 @@ void triangle_game::shutdown() {
 
 void triangle_game::create_physics() {
 	/* TODO */
-	geometry::scalar factor = 1.0f;
-	m_physics->set_limits(m_window->get_width()*factor, m_window->get_height()* factor);
+	geometry::scalar scale = 2.0f;
+	m_physics->set_limits(m_window->get_width(), m_window->get_height(), scale);
 }
 
 void triangle_game::initialize_objects() {
 	/* ToDo */
 	// input engine stuff
-	add_playable(&m_arrow);
+	INCLUDE_ARROW(add_playable(&m_arrow);)
 	// physic engine stuff
-	add_physical_object(&m_arrow);
-	INCLUDE_BUBBLE(add_physical_object(&m_bubble));
+	INCLUDE_ARROW(add_physical_object(&m_arrow);)
 	// render engine stuff
-	add_drawable(&m_arrow);
-	INCLUDE_BUBBLE(add_drawable(&m_bubble);)
 	/* initialize objects */
-	m_arrow.init();
-	INCLUDE_BUBBLE(m_bubble.init();)
+	INCLUDE_ARROW(add_drawable(&m_arrow);)
+	INCLUDE_ARROW(m_arrow.init();)
+	for (std::size_t i = 0u; i < NUMBER_OF_BUBBLE; ++i) {
+		INCLUDE_BUBBLE(add_physical_object(&m_bubbles[i]));
+		INCLUDE_BUBBLE(add_drawable(&m_bubbles[i]);)
+		INCLUDE_BUBBLE(m_bubbles[i].init();)
+	}
 }
 
 void triangle_game::process_input() {
@@ -75,22 +84,14 @@ void triangle_game::process_input() {
 		m_state = GAME_STATE::SHUT_DOWN;
 	}
 	m_input->process_input();
-	/* ToDo */
-	// process keyboard - inputs
-	// process mose - inputs
-	// process joystick - inputs
 };
 
 void triangle_game::update_game() {
 	auto tick = m_timer->tick();
 	m_physics->update(tick);
-	m_bubble.update(tick);
-	m_arrow.update(tick);
-	/* ToDo */
 }
 
 void triangle_game::generate_output() {
 	m_renderer->render();
 	m_renderer->draw(m_arrow.get_box());
-	/* ToDo */
 }

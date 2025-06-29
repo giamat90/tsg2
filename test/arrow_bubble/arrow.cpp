@@ -1,46 +1,54 @@
 #include "arrow.h"
 #include <texture.h>
 #include <tsg/os.h>
-#include <cmath>
+
+#define ARROW_TEXTURE
 
 using geometry::scalar;
+using geometry::cos;
 
 arrow::arrow() {
 	m_texture = texture::create_texture();
 }
 
 void arrow::init() {
+#ifdef ARROW_TEXTURE
 	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\arrow2.png")).string());
-	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y]));
+#else
+	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\astronaut_sprite_3.png")).string());
+#endif
+	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z]));
+	m_texture->set_scale(0.5f);
 	auto w = m_texture->get_size().get_x();
 	auto h = m_texture->get_size().get_y();
-	set_box(m_position - geometry::point3D(w / scalar(2), h / scalar(2), 0.0f), m_position + geometry::point3D(w / scalar(2), h / scalar(2), 0.0f));
+	set_box(m_position - geometry::point3D(w / scalar(2), h / scalar(2), 0.0f), m_position + geometry::point3D(w / scalar(2), h / scalar(2), 0.5f));
+	set_mass(scalar(1));
 }
 
-void arrow::update(const float delta_time) {
+void arrow::update(const scalar delta_time) {
 	/* ToDo */
 	physical_object::update(delta_time);
-	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y]));
+	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z]));
 	m_texture->set_rotation(m_rotation);
 }
 
 void arrow::process_input(input* input) {
-	m_velocity.zero();
+	//m_velocity.zero();
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_W)) {
 		/* Go up */
-		m_velocity += geometry::point3D(0.0, 1.0, 0.0);
+		push({ scalar(0), scalar(1), scalar(0) });
 	}
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_A)) {
 		/* Go left */
-		m_velocity += geometry::point3D(-1.0, 0.0, 0.0);
+		push({ scalar(-1), scalar(0), scalar(0) });
 	}
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_S)) {
 		/* Go down */
-		m_velocity += geometry::point3D(0.0, -1.0, 0.0);
+		push({ scalar(0), scalar(-1), scalar(0) });
 	}
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_D)) {
 		/* Go right */
-		m_velocity += geometry::point3D(1.0, 0.0, 0.0);
+		push({ scalar(1), scalar(0), scalar(0) });
 	}
 
 	constexpr geometry::scalar rotation_unit{ 0.05f };
@@ -54,11 +62,11 @@ void arrow::process_input(input* input) {
 	}
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_UP)) {
 		/* Rotate right */
-		m_velocity += geometry::point3D(std::cos(m_rotation), std::sin(m_rotation), 0.0f);
+		push({ geometry::cos(m_rotation), geometry::sin(m_rotation), 0.0f });
 	}
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_DOWN)) {
 		/* Rotate right */
-		m_velocity -= geometry::point3D(std::cos(m_rotation), std::sin(m_rotation), 0.0f);
+		push({ -geometry::cos(m_rotation), -geometry::sin(m_rotation), 0.0f });
 	}
 
 	if (input->is_key_pressed(input::INPUT_KEY::KEY_SPACE)) {

@@ -4,6 +4,8 @@
 #include "arrow.h"
 #include "bubble.h"
 
+#define NUMBER_OF_BUBBLE 2
+
 class triangle_game : public game
 {
 public:
@@ -21,6 +23,6 @@ private: // override private-methods
 	void generate_output() override;
 private: // object
 	arrow m_arrow;
-	bubble m_bubble;
+	bubble m_bubbles[NUMBER_OF_BUBBLE];
 };
 

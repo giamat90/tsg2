@@ -83,7 +83,8 @@ void glfw_renderer::draw(sprite* s) {
 void glfw_renderer::draw(texture* t) {
 	if (auto texture = dynamic_cast<glfw_texture*>(t)) {
 		glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-		transform = glm::translate(transform, glm::vec3(t->get_where().get_x(), t->get_where().get_y(), 0.0f));
+		transform = glm::scale(transform, glm::vec3(t->get_scale(), t->get_scale(), 1.0f));
+		transform = glm::translate(transform, glm::vec3(t->get_where()[geometry::AXES::X], t->get_where()[geometry::AXES::Y], t->get_where()[geometry::AXES::Z]));
 		transform = glm::rotate(transform,t->get_rotation(), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		unsigned int transformLoc = glGetUniformLocation(*m_shader.get_adaptee(), "transform");

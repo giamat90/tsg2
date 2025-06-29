@@ -11,7 +11,7 @@ public:
 public:
 	// dynamic_object overrides
 	void init() override;
-	void update(const float delta_time) override;
+	void update(const scalar delta_time) override;
 public:
 	// playable_object overrides
 	void process_input(input*) override;

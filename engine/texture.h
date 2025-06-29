@@ -8,7 +8,7 @@ using geometry::surface;
 
 class TSG2_API texture {
 public:
-	using position = geometry::vector<2>;
+	using position = geometry::vector<3>;
 	using angle = float;
 	using scale = float;
 public:
@@ -24,13 +24,14 @@ public:
 	inline scale get_scale() { return m_scale; }
 	inline position get_where() { return m_position; }
 	inline angle get_rotation() { return m_angle; }
-	inline position get_size() { return position(m_width, m_height); }
+	inline position get_size() { return m_scale * position(m_width, m_height, m_depth); }
 public: // factory-method
 	static texture* create_texture();
 protected:
-	scale m_scale{};
+	scale m_scale{1.0f};
 	position m_position{};
 	angle m_angle{};
 	int m_width{};
 	int m_height{};
+	int m_depth{};
 };

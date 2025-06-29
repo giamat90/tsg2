@@ -9,5 +9,5 @@ public:
 	~bubble() = default;
 public:
 	void init() override;
-	void update(const float delta_time) override;
+	void update(const scalar delta_time) override;
 };
