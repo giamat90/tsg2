@@ -15,9 +15,4 @@ glfw_font::~glfw_font() {
 }
 
 void glfw_font::load_font(const std::string& file_name, const std::size_t dim) {
-	//m_file_name = file_name;
-	//m_glfw_component = TTF_OpenFont(file_name.c_str(), static_cast<float>(dim));
-	//if (nullptr == m_glfw_component) {
-	//	tsg::print("error opening font {}", glfw_GetError());
-	//}
 }

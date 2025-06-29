@@ -152,7 +152,7 @@ void physics::physical_object::update(const scalar delta_time) {
 	translate(new_position - m_position);
 	m_acceleration.zero();
 	if (std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X])) {
-		tsg::print("Ooops! physical object computation fails to get a number.");
+		logger::get_istance().write("Ooops! physical object computation fails to get a number.");
 		throw;
 	}
 }
@@ -171,7 +171,7 @@ void physics::physical_object::set_mass(const scalar m) {
 		m_inverse_mass = scalar(1) / m;
 	}
 	else {
-		tsg::print("Is not possible set mass to zero.");
+		logger::get_istance().write("Is not possible set mass to zero.");
 		throw;
 	}
 }

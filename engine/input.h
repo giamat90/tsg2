@@ -4,8 +4,6 @@
 #include "window.h"
 #include <vector>
 
-
-
 class TSG2_API input {
 public:
 	class TSG2_API playable_object {

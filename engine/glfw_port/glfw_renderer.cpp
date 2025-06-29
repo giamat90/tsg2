@@ -1,7 +1,8 @@
 #include "glfw_renderer.h"
 #include "glfw_texture.h"
 #include "glfw_font.h"
-#include <geometry.h>
+#include "../geometry.h"
+#include "../logger.h"
 #include <tsg/io.h>	// print
 #include <tsg/os.h> // get_exe_path
 #define GLAD_GL_IMPLEMENTATION
@@ -98,7 +99,7 @@ void glfw_renderer::draw(texture* t) {
 		gl_check_error(__FILE__, __LINE__);
 	}
 	else {
-		tsg::print("Error casting texture in glfw_texture");
+		logger::get_istance().write("Error casting texture in glfw_texture");
 		throw;
 	}
 }

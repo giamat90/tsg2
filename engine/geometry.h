@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tsg2.h"
+#include "logger.h"
 #include <tsg/io.h>
 #include <tsg/math.h>
 #include <initializer_list>
@@ -145,7 +146,7 @@ namespace geometry {
 				scalar inverse_norm = scalar(1) / norm;
 				return inverse_norm * (*this);
 			}
-			tsg::print("Can't normalize a vector of norm 0");
+			logger::get_istance().write("Can't normalize a vector of norm 0");
 			throw;
 		}
 		void normalize() {
@@ -157,7 +158,7 @@ namespace geometry {
 				}
 			}
 			else {
-				tsg::print("Can't normalize a vector of norm 0");
+				logger::get_istance().write("Can't normalize a vector of norm 0");
 				throw;
 			}
 		};
@@ -213,7 +214,7 @@ namespace geometry {
 				return m_v[a];
 			}
 			else {
-				tsg::print("Axes not valid for this vector");
+				logger::get_istance().write("Axes not valid for this vector");
 				throw(std::numeric_limits<scalar>::infinity());
 			}
 		}
@@ -222,7 +223,7 @@ namespace geometry {
 				return m_v[a];
 			}
 			else {
-				tsg::print("Axes not valid for this vector");
+				logger::get_istance().write("Axes not valid for this vector");
 				throw(std::numeric_limits<scalar>::infinity());
 			}
 		}
@@ -271,7 +272,7 @@ namespace geometry {
 
 		static vector<Dim> cross() {
 			/*TODO*/
-			tsg::print("Ooops it seems you call something not implemented yet!");
+			logger::get_istance().write("Ooops it seems you call something not implemented yet!");
 			throw;
 		}
 

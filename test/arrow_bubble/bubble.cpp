@@ -1,5 +1,6 @@
 #include "bubble.h"
 #include <texture.h>
+#include <logger.h>
 #include <tsg/os.h> // get_exe_path
 #include <random>
 
@@ -18,7 +19,7 @@ void bubble::init() {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<scalar> dis(-1.0, 1.0);
 	m_box.translate({ dis(gen), dis(gen), scalar(0)}); // where it should start
-	tsg::print("Bubble start at ({},{},{})",
+	logger::get_istance().write("Bubble start at ({},{},{})",
 		m_box.get_center().get<geometry::AXES::X>(),
 		m_box.get_center().get<geometry::AXES::Y>(),
 		m_box.get_center().get<geometry::AXES::Z>());

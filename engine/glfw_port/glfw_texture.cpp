@@ -1,5 +1,6 @@
 #include "glfw_texture.h"
 #include "glfw_converter.h"
+#include "../logger.h"
 #include <tsg/io.h>         // print
 #include <glad/gl.h>
 #define STB_IMAGE_IMPLEMENTATION
@@ -63,7 +64,7 @@ void glfw_texture::load(const std::string& asset){
 
         }
         else {
-            tsg::print("Error loading texture {}, reason {}", asset, stbi_failure_reason());
+            logger::get_istance().write("Error loading texture {}, reason {}", asset, stbi_failure_reason());
         }
         stbi_image_free(data);
     }
