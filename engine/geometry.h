@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tsg2.h"
-#include "logger.h"
 #include <tsg/io.h>
 #include <tsg/math.h>
 #include <initializer_list>
@@ -55,6 +54,9 @@ namespace geometry {
 	}
 	scalar inline arccos(const scalar v) {
 		return std::acosf(v);
+	}
+	scalar inline arcsin(const scalar v) {
+		return std::asinf(v);
 	}
 	scalar inline cos(const scalar v) {
 		return std::cosf(v);
@@ -146,7 +148,6 @@ namespace geometry {
 				scalar inverse_norm = scalar(1) / norm;
 				return inverse_norm * (*this);
 			}
-			logger::get_istance().write("Can't normalize a vector of norm 0");
 			throw;
 		}
 		void normalize() {
@@ -158,7 +159,6 @@ namespace geometry {
 				}
 			}
 			else {
-				logger::get_istance().write("Can't normalize a vector of norm 0");
 				throw;
 			}
 		};
@@ -214,7 +214,6 @@ namespace geometry {
 				return m_v[a];
 			}
 			else {
-				logger::get_istance().write("Axes not valid for this vector");
 				throw(std::numeric_limits<scalar>::infinity());
 			}
 		}
@@ -223,7 +222,6 @@ namespace geometry {
 				return m_v[a];
 			}
 			else {
-				logger::get_istance().write("Axes not valid for this vector");
 				throw(std::numeric_limits<scalar>::infinity());
 			}
 		}
@@ -272,7 +270,6 @@ namespace geometry {
 
 		static vector<Dim> cross() {
 			/*TODO*/
-			logger::get_istance().write("Ooops it seems you call something not implemented yet!");
 			throw;
 		}
 
@@ -342,6 +339,9 @@ namespace geometry {
 			m_type = TYPE::RECTANGLE;
 		}
 
+		rectangle(const vector<Dim>& center, const scalar half_w, const scalar half_h) {
+		/* TODO */ 
+		};
 		rectangle(const vector<Dim>& top_left, const vector<Dim>& bottom_right) : shape(),
 			m_a(top_left), m_b(bottom_right)
 		{
@@ -381,7 +381,7 @@ namespace geometry {
 		};
 		inline scalar get_min(const AXES axes) {
 			return std::min(m_a[axes], m_b[axes]);
-		}
+		};
 	public:
 		/* tronsform methods */
 		void translate(const vector<Dim>& pos) {

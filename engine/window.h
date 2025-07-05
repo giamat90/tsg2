@@ -3,7 +3,6 @@
 #include "tsg2.h"
 #include <exception>
 #include <string>
-#include <iostream>
 
 class TSG2_API window {
 public:

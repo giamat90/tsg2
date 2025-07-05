@@ -2,9 +2,9 @@
 #include "glfw_texture.h"
 #include "glfw_font.h"
 #include "../geometry.h"
-#include "../logger.h"
+#include <tsg/logger.h>
 #include <tsg/io.h>	// print
-#include <tsg/os.h> // get_exe_path
+//#include <tsg/os.h> // get_exe_path
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
@@ -22,7 +22,7 @@ glfw_renderer::glfw_renderer(glfw_window * w) : renderer(w) {
 		throw exception("gladLoadGL Error");
 	};
 	glfwSwapInterval(1);
-	
+
 	m_shader.init(
 		(tsg::os::get_exe_path() / std::filesystem::path("shaders\\texture_transform.vert.shad")).string().c_str(),
 		(tsg::os::get_exe_path() / std::filesystem::path("shaders\\texture_transform.frag.shad")).string().c_str()
@@ -99,7 +99,7 @@ void glfw_renderer::draw(texture* t) {
 		gl_check_error(__FILE__, __LINE__);
 	}
 	else {
-		logger::get_istance().write("Error casting texture in glfw_texture");
+		tsg::logger::get_istance().write("Error casting texture in glfw_texture");
 		throw;
 	}
 }

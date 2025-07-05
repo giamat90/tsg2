@@ -1,9 +1,9 @@
 #include "triangle_game.h"
 #include <tsg/io.h>
-#include <tsg/os.h>
+//#include <tsg/os.h>
 #include "game_event.h"
 
-#include <logger.h>
+#include <tsg/logger.h>
 
 #define EXCLUDE_BUBBLE 0
 #define EXCLUDE_ARROW 1
@@ -20,14 +20,12 @@
 #define INCLUDE_ARROW( code ) code
 #endif
 
-tsg::file log_file(tsg::os::get_exe_path() / ".\\log.txt");
-
 triangle_game::triangle_game() : game()/*: m_arrow(m_input)*/  {
-	logger::get_istance().write("triangle ctor");
+	tsg::logger::get_istance().write("triangle ctor");
 }
 
 triangle_game::~triangle_game() {
-	logger::get_istance().write("triangle dtor");
+	tsg::logger::get_istance().write("triangle dtor");
 }
 
 bool triangle_game::initialize() {
@@ -43,7 +41,7 @@ bool triangle_game::initialize() {
 		res = true;
 	}
 	else {
-		logger::get_istance().write("Error initializing externals");
+		tsg::logger::get_istance().write("Error initializing externals");
 	}
 	return res;
 }

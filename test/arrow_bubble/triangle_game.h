@@ -4,7 +4,7 @@
 #include "arrow.h"
 #include "bubble.h"
 
-#define NUMBER_OF_BUBBLE 2
+#define NUMBER_OF_BUBBLE 1
 
 class triangle_game : public game
 {

@@ -1,4 +1,5 @@
 #include "physics.h"
+#include <tsg/logger.h>
 #include <tsg/io.h>
 
 using geometry::scalar;
@@ -141,6 +142,12 @@ void physics::physical_world::resolve_contact(physics::physical_object* const a,
 }
 
 void physics::physical_object::update(const scalar delta_time) {
+	//tsg::logger::get_istance().write("{}", 42);
+	//tsg::logger::get_istance().write("{}", this);
+	tsg::logger::get_istance().write("{}:\tp=({},{},{}),\tv=({},{},{}),\ta=({},{},{})", this,
+			m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z],
+			m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y], m_velocity[geometry::AXES::Z],
+			m_acceleration[geometry::AXES::X], m_acceleration[geometry::AXES::Y], m_acceleration[geometry::AXES::Z]);
 	if (m_angular_speed > 0.0f) {
 		m_rotation += m_angular_speed * delta_time;
 		m_box.rotate(m_rotation);
@@ -152,7 +159,7 @@ void physics::physical_object::update(const scalar delta_time) {
 	translate(new_position - m_position);
 	m_acceleration.zero();
 	if (std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X])) {
-		logger::get_istance().write("Ooops! physical object computation fails to get a number.");
+		tsg::logger::get_istance().write("Ooops! physical object computation fails to get a number.");
 		throw;
 	}
 }
@@ -171,7 +178,7 @@ void physics::physical_object::set_mass(const scalar m) {
 		m_inverse_mass = scalar(1) / m;
 	}
 	else {
-		logger::get_istance().write("Is not possible set mass to zero.");
+		//tsg::logger::get_istance().write("Is not possible set mass to zero.");
 		throw;
 	}
 }

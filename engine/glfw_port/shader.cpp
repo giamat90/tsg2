@@ -67,9 +67,11 @@ GLuint shader::load(const char * path, const SHADER_TYPE type) {
 	}
 	catch (std::fstream::failure& e) {
 		tsg::print("Shader loading {} exception {}", path, e.what());
+		throw;
 	}
 	catch (...) {
 		tsg::print("Shader loading {} exception unknown", path);
+		throw;
 	}
 }
 

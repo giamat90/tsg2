@@ -3,9 +3,9 @@
 #include "tsg2.h"
 #include "game_object.h"
 #include <geometry.h>
-#include <logger.h>
 #include <vector>
 #include <algorithm>
+#include <tsg/io.h>
 
 using geometry::scalar;
 
@@ -91,13 +91,6 @@ public:
 			o->update(delta_time);
 		}
 		m_world->compute();
-
-		for (auto o : m_physical_object) {
-			logger::get_istance().write("{}:\tp=({},{},{}),\tv=({},{},{}),\ta=({},{},{})", o,
-				o->m_position[geometry::AXES::X], o->m_position[geometry::AXES::Y], o->m_position[geometry::AXES::Z],
-				o->m_velocity[geometry::AXES::X], o->m_velocity[geometry::AXES::Y], o->m_velocity[geometry::AXES::Z],
-				o->m_acceleration[geometry::AXES::X], o->m_acceleration[geometry::AXES::Y], o->m_acceleration[geometry::AXES::Z]);
-		}
 	}
 public:
 	// TODO: evalueate to made it private and friendable of game
