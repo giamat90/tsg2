@@ -1,12 +1,11 @@
 #include "triangle_game.h"
 #include <tsg/io.h>
-//#include <tsg/os.h>
 #include "game_event.h"
 
 #include <tsg/logger.h>
 
 #define EXCLUDE_BUBBLE 0
-#define EXCLUDE_ARROW 1
+#define EXCLUDE_ARROW 0
 
 #if EXCLUDE_BUBBLE
 #define INCLUDE_BUBBLE( code ) /* code */

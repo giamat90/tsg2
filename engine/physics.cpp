@@ -142,9 +142,7 @@ void physics::physical_world::resolve_contact(physics::physical_object* const a,
 }
 
 void physics::physical_object::update(const scalar delta_time) {
-	//tsg::logger::get_istance().write("{}", 42);
-	//tsg::logger::get_istance().write("{}", this);
-	tsg::logger::get_istance().write("{}:\tp=({},{},{}),\tv=({},{},{}),\ta=({},{},{})", this,
+	tsg::logger::get_istance().write("{}: p=({},{},{}), v=({},{},{}), a=({},{},{})", this,
 			m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z],
 			m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y], m_velocity[geometry::AXES::Z],
 			m_acceleration[geometry::AXES::X], m_acceleration[geometry::AXES::Y], m_acceleration[geometry::AXES::Z]);
@@ -154,12 +152,12 @@ void physics::physical_object::update(const scalar delta_time) {
 	}
 	// consume the acceleration due forces
 	m_velocity += m_acceleration * delta_time;
-	// p1 = p0 + p't + p''t^2/2
+	// now the position changes due only the velocity
 	geometry::point3D new_position = m_position + m_velocity * delta_time;
 	translate(new_position - m_position);
 	m_acceleration.zero();
 	if (std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X])) {
-		tsg::logger::get_istance().write("Ooops! physical object computation fails to get a number.");
+		tsg::logger::get_istance().write("Exception in {}: physical object computation fails to get a number.", __FILE__);
 		throw;
 	}
 }
