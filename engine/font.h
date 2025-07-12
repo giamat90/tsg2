@@ -5,12 +5,11 @@
 #include "color.h"
 #include <string>
 
-using geometry::position;
 using geometry::surface;
 
 class TSG2_API font {
 public:
-	using text_position = geometry::vector<2>;
+	using text_position = tsg::vector<std::size_t, 2>;
 public:
 	font() {};
 	font(const std::string& s, const color& c, const text_position& p) : 

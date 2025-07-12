@@ -9,7 +9,7 @@
 class pong: public game
 {
 public:
-	using pong_vector = geometry::vector<2u>;
+	using pong_vector = tsg::vector<2u>;
 
 public:
 	pong();

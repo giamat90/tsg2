@@ -1,11 +1,12 @@
 #include "triangle_game.h"
 #include <tsg/io.h>
+#include <tsg/os.h>
 #include "game_event.h"
 
 #include <tsg/logger.h>
 
 #define EXCLUDE_BUBBLE 0
-#define EXCLUDE_ARROW 0
+#define EXCLUDE_ARROW NUMBER_OF_BUBBLE > 1 ? 1 : 0
 
 #if EXCLUDE_BUBBLE
 #define INCLUDE_BUBBLE( code ) /* code */
@@ -19,12 +20,13 @@
 #define INCLUDE_ARROW( code ) code
 #endif
 
+
 triangle_game::triangle_game() : game()/*: m_arrow(m_input)*/  {
-	tsg::logger::get_istance().write("triangle ctor");
+	tsg::logger::get_instance().write("triangle ctor");
 }
 
 triangle_game::~triangle_game() {
-	tsg::logger::get_istance().write("triangle dtor");
+	tsg::logger::get_instance().write("triangle dtor");
 }
 
 bool triangle_game::initialize() {
@@ -40,7 +42,7 @@ bool triangle_game::initialize() {
 		res = true;
 	}
 	else {
-		tsg::logger::get_istance().write("Error initializing externals");
+		tsg::logger::get_instance().write("Error initializing externals");
 	}
 	return res;
 }
@@ -61,7 +63,7 @@ void triangle_game::shutdown() {
 void triangle_game::create_physics() {
 	/* TODO */
 	geometry::scalar scale = 2.0f;
-	m_physics->set_limits(m_window->get_width(), m_window->get_height(), scale);
+	m_physics->set_limits(scalar(m_window->get_width()), scalar(m_window->get_height()), scale);
 }
 
 void triangle_game::initialize_objects() {

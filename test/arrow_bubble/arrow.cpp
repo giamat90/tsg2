@@ -17,18 +17,18 @@ void arrow::init() {
 #else
 	m_texture->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\astronaut_sprite_3.png")).string());
 #endif
-	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z]));
+	m_texture->set_where(texture::position({ m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z] }));
 	m_texture->set_scale(0.5f);
-	auto w = m_texture->get_size().get_x();
-	auto h = m_texture->get_size().get_y();
-	set_box(m_position - geometry::point3D(w / scalar(2), h / scalar(2), 0.0f), m_position + geometry::point3D(w / scalar(2), h / scalar(2), 0.5f));
+	auto w = m_texture->get_size().get<geometry::AXES::X>();
+	auto h = m_texture->get_size().get<geometry::AXES::Y>();
+	set_box(m_position, { w / scalar(2), h / scalar(2), 0.0f });
 	set_mass(scalar(1));
 }
 
 void arrow::update(const scalar delta_time) {
 	/* ToDo */
 	physical_object::update(delta_time);
-	m_texture->set_where(texture::position(m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z]));
+	m_texture->set_where(texture::position({ m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z] }));
 	m_texture->set_rotation(m_rotation);
 }
 

@@ -91,7 +91,7 @@ endif()
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set C++ standard
-target_compile_features(engine PUBLIC cxx_std_20)
+target_compile_features(engine PUBLIC cxx_std_23)
 
 # Set appropriate compiler flags
 if(MSVC)

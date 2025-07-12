@@ -12,7 +12,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "source" FILES ${PONG_SOURC
 
 target_link_libraries(pong PRIVATE engine)
 
-target_compile_features(pong PUBLIC cxx_std_20)
+target_compile_features(pong PUBLIC cxx_std_23)
 
 if(MSVC)
     target_compile_options(pong PRIVATE /W4)

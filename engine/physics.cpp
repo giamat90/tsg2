@@ -21,6 +21,7 @@ void physics::physical_world::compute() {
 			return a->get_box().get_min(geometry::X) < b->get_box().get_min(geometry::X);
 		}
 	);
+	/* First check if there is contact with world walls */
 	for (auto it = m_objects.begin(); it != m_objects.end(); ++it) {
 		auto obj = *it;
 		auto wall_contact = [&](const geometry::vector3D& normal) {
@@ -48,7 +49,7 @@ void physics::physical_world::compute() {
 			wall_contact({ scalar(0), scalar(-1), scalar(0) });
 		}
 		if (obj->m_box.get_max(AXES::Z) > m_limits.get_max(AXES::Z)) {
-
+			/* Nothing to do for now */
 		}
 		//
 		if (obj->m_box.get_min(AXES::X) < m_limits.get_min(AXES::X)) {
@@ -95,43 +96,36 @@ void physics::physical_world::compute() {
 }
 
 bool physics::physical_world::contact(geometry::box3D a, geometry::box3D b) {
-	if (a.get_max(AXES::X) >= b.get_min(AXES::X)) {
-		if (a.get_max(AXES::Y) >= b.get_min(AXES::Y) ||
-			a.get_min(AXES::Y) >= b.get_max(AXES::Y) ||
-			a.get_max(AXES::Z) >= b.get_min(AXES::Z) ||
-			a.get_min(AXES::Z) >= b.get_max(AXES::Z))
-		{
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	else {
-		return false;
-	}
+	/*
+	* This is an overlapping std::size_t pre-test to detect early exiting from collision detection
+	*/
+	return 
+		a.get_max(AXES::X) >= b.get_min(AXES::X) &&
+		a.get_max(AXES::Y) >= b.get_min(AXES::Y) &&
+		a.get_max(AXES::Z) >= b.get_min(AXES::Z);
 }
 
 void physics::physical_world::resolve_contact(physics::physical_object* const a, physics::physical_object* const b) {
 	/* I know that the box should translate along x of dx. The object has a velocity v that determine a direction
 	* then to compute the point of contact I should translate the object of dx.
 	*/
+#if 0
 	auto a0 = a->m_position;
 	auto b0 = b->m_position;
 	auto va0 = a->m_velocity;
 	auto vb0 = b->m_velocity;
-	if (!a->m_velocity.is_zero()) {
-		scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-		scalar dy{ dx * a->m_velocity.get<AXES::Y>() / a->m_velocity.get<AXES::X>() };
-		scalar dz{ dx * a->m_velocity.get<AXES::Z>() / a->m_velocity.get<AXES::X>() };
-		a->translate({ -dx, -dy, -dz });
-	}
-	else if (!b->m_velocity.is_zero()) {
-		scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-		scalar dy{ dx * b->m_velocity.get<AXES::Y>() / b->m_velocity.get<AXES::X>() };
-		scalar dz{ dx * b->m_velocity.get<AXES::Z>() / b->m_velocity.get<AXES::X>() };
-		b->translate({ -dx, -dy, -dz });
-	}
+	//if (!a->m_velocity.is_zero()) {
+	//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
+	//	scalar dy{ dx * a->m_velocity.get<AXES::Y>() / a->m_velocity.get<AXES::X>() };
+	//	scalar dz{ dx * a->m_velocity.get<AXES::Z>() / a->m_velocity.get<AXES::X>() };
+	//	a->translate({ -dx, -dy, -dz });
+	//}
+	//else if (!b->m_velocity.is_zero()) {
+	//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
+	//	scalar dy{ dx * b->m_velocity.get<AXES::Y>() / b->m_velocity.get<AXES::X>() };
+	//	scalar dz{ dx * b->m_velocity.get<AXES::Z>() / b->m_velocity.get<AXES::X>() };
+	//	b->translate({ -dx, -dy, -dz });
+	//}
 	geometry::point3D point = a->get_box().get_max_point<AXES::X>();
 	geometry::vector3D normal = (a->get_box().get_center() - b->get_box().get_center()).get_normalized();
 	scalar seperataing_velocity{ vector3D::dot((a->m_velocity - b->m_velocity), normal) };
@@ -139,10 +133,20 @@ void physics::physical_world::resolve_contact(physics::physical_object* const a,
 	vector3D impulse{ (-2 * seperataing_velocity / total_inverse_mass) * normal };
 	a->m_velocity += a->m_inverse_mass * impulse;
 	b->m_velocity -= b->m_inverse_mass * impulse;
+#endif
+	// std::size_t that pass throw the two objects center.
+	vector3D axes{ b->m_position - a->m_position };
+	// compute that std::size_t in a's coord system
+	auto tmp = a->get_box().get_axes();
+	//axes = {
+	//	axes.dot(a->m_rotation[geometry::AXES::X]), 
+	//	axes.dot(a->m_rotation[geometry::AXES::Y]),
+	//	axes.dot(a->m_box[geometry::AXES::Z]) };
+
 }
 
 void physics::physical_object::update(const scalar delta_time) {
-	tsg::logger::get_istance().write("{}: p=({},{},{}), v=({},{},{}), a=({},{},{})", this,
+	tsg::logger::get_instance().write("{}: p=({},{},{}), v=({},{},{}), a=({},{},{})", this,
 			m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z],
 			m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y], m_velocity[geometry::AXES::Z],
 			m_acceleration[geometry::AXES::X], m_acceleration[geometry::AXES::Y], m_acceleration[geometry::AXES::Z]);
@@ -157,13 +161,13 @@ void physics::physical_object::update(const scalar delta_time) {
 	translate(new_position - m_position);
 	m_acceleration.zero();
 	if (std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X])) {
-		tsg::logger::get_istance().write("Exception in {}: physical object computation fails to get a number.", __FILE__);
+		tsg::logger::get_instance().write("Exception in {}: physical object computation fails to get a number.", __FILE__);
 		throw;
 	}
 }
 
-void physics::physical_object::translate(const geometry::point3D& t) {
-	m_box.translate(t);
+void physics::physical_object::translate(const geometry::point3D& scalar) {
+	m_box.translate(scalar);
 	m_position = m_box.get_center();
 }
 
@@ -176,7 +180,7 @@ void physics::physical_object::set_mass(const scalar m) {
 		m_inverse_mass = scalar(1) / m;
 	}
 	else {
-		//tsg::logger::get_istance().write("Is not possible set mass to zero.");
+		//tsg::logger::get_instance().write("Is not possible set mass to zero.");
 		throw;
 	}
 }

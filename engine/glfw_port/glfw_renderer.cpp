@@ -16,6 +16,9 @@
 
 #include "gl_utility.h"	// gl_check_error
 
+using geometry::AXES;
+
+
 glfw_renderer::glfw_renderer(glfw_window * w) : renderer(w) {
 	// NOTE: OpenGL error checks have been omitted for brevity
 	if (0 == gladLoadGL(glfwGetProcAddress)) {
@@ -85,7 +88,7 @@ void glfw_renderer::draw(texture* t) {
 	if (auto texture = dynamic_cast<glfw_texture*>(t)) {
 		glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 		transform = glm::scale(transform, glm::vec3(t->get_scale(), t->get_scale(), 1.0f));
-		transform = glm::translate(transform, glm::vec3(t->get_where()[geometry::AXES::X], t->get_where()[geometry::AXES::Y], t->get_where()[geometry::AXES::Z]));
+		transform = glm::translate(transform, glm::vec3(t->get_where()[AXES::X], t->get_where()[AXES::Y], t->get_where()[AXES::Z]));
 		transform = glm::rotate(transform,t->get_rotation(), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		unsigned int transformLoc = glGetUniformLocation(*m_shader.get_adaptee(), "transform");
@@ -99,7 +102,7 @@ void glfw_renderer::draw(texture* t) {
 		gl_check_error(__FILE__, __LINE__);
 	}
 	else {
-		tsg::logger::get_istance().write("Error casting texture in glfw_texture");
+		tsg::logger::get_instance().write("Error casting texture in glfw_texture");
 		throw;
 	}
 }
@@ -125,13 +128,13 @@ void glfw_renderer::draw(geometry::shape* r) {
 	//gl_check_error(__FILE__, __LINE__);
 }
 
-void glfw_renderer::draw(const geometry::box3D& box) {		
+void glfw_renderer::draw(const geometry::box3D& box) {
 	// use programs previously loaded
 	m_shader.use();
 	// use vertexes previously loaded
 	m_vertex.use();
 	glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-	transform = glm::translate(transform, glm::vec3(box.get_center().get_x(), box.get_center().get_y(), 0.0f));
+	transform = glm::translate(transform, glm::vec3(box.get_center().get<AXES::X>(), box.get_center().get<AXES::Y>(), 0.0f));
 	transform = glm::rotate(transform, 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
 
 	unsigned int transformLoc = glGetUniformLocation(*m_shader.get_adaptee(), "transform");

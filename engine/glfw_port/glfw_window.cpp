@@ -6,7 +6,7 @@
 
 static void resize_window_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
-	tsg::logger::get_istance().write("w: {} h: {}", width, height);
+	tsg::logger::get_instance().write("w: {} h: {}", width, height);
 }
 
 glfw_window::glfw_window(const std::string& t, const width_t w, const height_t h) : window(t, w, h) {

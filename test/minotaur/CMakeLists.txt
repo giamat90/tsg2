@@ -24,7 +24,7 @@ if(USE_GLFW)
 	target_link_libraries(minotaur PRIVATE glfw3.lib)
 
 	# Settings compiler options
-	target_compile_features(minotaur PUBLIC cxx_std_20)
+	target_compile_features(minotaur PUBLIC cxx_std_23)
 	if(MSVC)
 		target_compile_options(minotaur PRIVATE /W4)
 	else()

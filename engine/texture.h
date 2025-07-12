@@ -5,10 +5,11 @@
 #include <tsg/types.h>
 
 using geometry::surface;
+using geometry::scalar;
 
 class TSG2_API texture {
 public:
-	using position = geometry::vector<3>;
+	using position = tsg::vector<scalar, 3>;
 	using angle = float;
 	using scale = float;
 public:
@@ -24,7 +25,7 @@ public:
 	inline scale get_scale() { return m_scale; }
 	inline position get_where() { return m_position; }
 	inline angle get_rotation() { return m_angle; }
-	inline position get_size() { return m_scale * position(m_width, m_height, m_depth); }
+	inline position get_size() { return m_scale * position({ scalar(m_width), scalar(m_height), scalar(m_depth) }); }
 public: // factory-method
 	static texture* create_texture();
 protected:
