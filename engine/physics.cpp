@@ -5,6 +5,7 @@
 using geometry::scalar;
 using geometry::AXES;
 using geometry::vector3D;
+using geometry::quaternion;
 
 physics::physics() {
 	m_world = new physical_world();
@@ -95,21 +96,162 @@ void physics::physical_world::compute() {
 	}
 }
 
-bool physics::physical_world::contact(geometry::box3D a, geometry::box3D b) {
+bool physics::physical_world::contact(geometry::box3D& a, geometry::box3D& b) {
 	/*
 	* This is an overlapping std::size_t pre-test to detect early exiting from collision detection
 	*/
-	return 
-		a.get_max(AXES::X) >= b.get_min(AXES::X) &&
+	if (a.get_max(AXES::X) >= b.get_min(AXES::X) &&
 		a.get_max(AXES::Y) >= b.get_min(AXES::Y) &&
-		a.get_max(AXES::Z) >= b.get_min(AXES::Z);
+		a.get_max(AXES::Z) >= b.get_min(AXES::Z)) 
+	{
+		bool collide = true;
+		/* Store object's rotation matrix */
+		auto a_rot = a.get_axes();
+		auto b_rot = b.get_axes();
+		/*
+		* Axes that pass throw the two objects center.
+		* Also known as translation axes
+		*/
+		vector3D axes{ b.get_center() - a.get_center()};
+		/*
+		* Compute the translation axes in a-obj's coord system
+		*/
+		axes = {
+			vector3D::dot(axes, a_rot.get_row(AXES::X)),
+			vector3D::dot(axes, a_rot.get_row(AXES::Y)),
+			vector3D::dot(axes, a_rot.get_row(AXES::Z))
+		};
+		/*
+		* Computing b-obj's rotation matrix in a-obj's coord system and its abs
+		*/
+		tsg::matrix<scalar, 3, 3> r{ tsg::matrix<scalar,3,3>::TYPE::ZERO };
+		tsg::matrix<scalar, 3, 3> abs_r{ tsg::matrix<scalar,3,3>::TYPE::ZERO };
+		for (std::size_t i = 0u; i < 3u; ++i) {
+			for (std::size_t j = 0u; j < 3u; ++j) {
+				r(i, j) = vector3D::dot(a_rot.get_row(i), b_rot.get_row(j));
+				abs_r(i, j) = geometry::abs(r(i, j)) + geometry::epsilon;
+			}
+		}
+		/*
+		* Start with tests
+		*/
+		scalar ra{};
+		scalar rb{};
+		auto a_sizes = a.get_sizes();
+		auto b_sizes = b.get_sizes();
+		/*
+		* Test axes A0, A1 and A2
+		*/
+		for (std::size_t i = 0u; i < 3u; ++i) {
+			ra =
+				a_sizes[AXES::X] * (i == 0 ? 1 : 0) +
+				a_sizes[AXES::Y] * (i == 1 ? 1 : 0) +
+				a_sizes[AXES::Z] * (i == 2 ? 1 : 0);
+			rb =
+				b_sizes[AXES::X] * abs_r(i, 0) +
+				b_sizes[AXES::Y] * abs_r(i, 1) +
+				b_sizes[AXES::Z] * abs_r(i, 2);
+			const scalar val = (i == 0) ? axes[AXES::X] : (i == 1) ? axes[AXES::Y] : axes[AXES::Z];
+			if (geometry::abs(val) > ra + rb) {
+				return !collide;
+			}
+		}
+		/*
+		* Test axes B0, B1 and B2
+		*/
+		for (std::size_t i = 0u; i < 3u; ++i) {
+			ra =
+				a_sizes[AXES::X] * abs_r(i, 0) +
+				a_sizes[AXES::Y] * abs_r(i, 1) +
+				a_sizes[AXES::Z] * abs_r(i, 2);
+			rb = (i == 0) ? b_sizes[AXES::X] :
+				(i == 1) ? b_sizes[AXES::Y] : b_sizes[AXES::Z];
+			const scalar prj =
+				axes[AXES::X] * r(0, 1) +
+				axes[AXES::Y] * r(1, i) +
+				axes[AXES::Z] * r(2, i);
+			if (geometry::abs(prj) > ra + rb) {
+				return !collide;
+			}
+		}
+		/*
+		* Test all 9 cross product axes
+		*/
+		// A0 X B0
+		ra = a_sizes[AXES::Y] * abs_r(2, 0) + a_sizes[AXES::Z] * abs_r(1, 0);
+		rb = b_sizes[AXES::Y] * abs_r(0, 2) + a_sizes[AXES::Z] * abs_r(0, 1);
+		if (geometry::abs(axes[AXES::Z] * r(1, 0) - axes[AXES::Y] * r(2, 0)) > ra + rb) {
+			return !collide;
+		}
+		// A0 X B1
+		ra = a_sizes[AXES::Y] * abs_r(2, 1) + a_sizes[AXES::Z] * abs_r(1, 1);
+		rb = b_sizes[AXES::X] * abs_r(0, 2) + a_sizes[AXES::Z] * abs_r(0, 0);
+		if (geometry::abs(axes[AXES::Z] * r(1, 1) - axes[AXES::Y] * r(2, 1)) > ra + rb) {
+			return !collide;
+		}
+		// A0 X B2
+		ra = a_sizes[AXES::Y] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(1, 2);
+		rb = b_sizes[AXES::X] * abs_r(0, 1) + a_sizes[AXES::Y] * abs_r(0, 0);
+		if (geometry::abs(axes[AXES::Z] * r(1, 2) - axes[AXES::Y] * r(2, 2)) > ra + rb) {
+			return !collide;
+		}
+		// A1 X B2
+		ra = a_sizes[AXES::X] * abs_r(2, 0) + a_sizes[AXES::Z] * abs_r(0, 0);
+		rb = b_sizes[AXES::Y] * abs_r(1, 2) + a_sizes[AXES::Z] * abs_r(1, 1);
+		if (geometry::abs(axes[AXES::X] * r(2, 0) - axes[AXES::Z] * r(0, 0)) > ra + rb) {
+			return !collide;
+		}
+		// A1 X B1
+		ra = a_sizes[AXES::X] * abs_r(2, 1) + a_sizes[AXES::Z] * abs_r(0, 1);
+		rb = b_sizes[AXES::Y] * abs_r(1, 2) + a_sizes[AXES::Z] * abs_r(1, 0);
+		if (geometry::abs(axes[AXES::X] * r(2, 1) - axes[AXES::Z] * r(0, 1)) > ra + rb) {
+			return !collide;
+		}
+		// A1 X B2
+		ra = a_sizes[AXES::X] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(0, 2);
+		rb = b_sizes[AXES::X] * abs_r(1, 1) + a_sizes[AXES::Y] * abs_r(1, 0);
+		if (geometry::abs(axes[AXES::X] * r(2, 2) - axes[AXES::Z] * r(0, 2)) > ra + rb) {
+			return !collide;
+		}
+		// A2 X B0
+		ra = a_sizes[AXES::X] * abs_r(1, 0) + a_sizes[AXES::Y] * abs_r(0, 0);
+		rb = b_sizes[AXES::Y] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(2, 1);
+		if (geometry::abs(axes[AXES::Y] * r(0, 0) - axes[AXES::X] * r(1, 0)) > ra + rb) {
+			return !collide;
+		}
+		// A2 X B1
+		ra = a_sizes[AXES::X] * abs_r(1, 1) + a_sizes[AXES::Y] * abs_r(0, 1);
+		rb = b_sizes[AXES::X] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(2, 0);
+		if (geometry::abs(axes[AXES::Y] * r(0, 1) - axes[AXES::X] * r(1, 1)) > ra + rb) {
+			return !collide;
+		}
+		// A2 X B2
+		ra = a_sizes[AXES::X] * abs_r(1, 2) + a_sizes[AXES::Y] * abs_r(0, 2);
+		rb = b_sizes[AXES::X] * abs_r(2, 1) + a_sizes[AXES::Y] * abs_r(2, 0);
+		if (geometry::abs(axes[AXES::Y] * r(0, 2) - axes[AXES::X] * r(1, 2)) > ra + rb) {
+			return !collide;
+		}
+		/*
+		* No separating axis found!!! Then there is a collision!
+		*/
+		return collide;
+	} 
+	else {
+		return false;
+	}
 }
 
 void physics::physical_world::resolve_contact(physics::physical_object* const a, physics::physical_object* const b) {
+	/* 
+	* Compute contact data
+	*/
+	geometry::obb_contact resolver(a->get_box(), b->get_box());
+	resolver.compute(geometry::obb_contact::TYPE::VERTEX_FACE);
+
 	/* I know that the box should translate along x of dx. The object has a velocity v that determine a direction
 	* then to compute the point of contact I should translate the object of dx.
 	*/
-#if 0
+#if 1
 	auto a0 = a->m_position;
 	auto b0 = b->m_position;
 	auto va0 = a->m_velocity;
@@ -134,15 +276,6 @@ void physics::physical_world::resolve_contact(physics::physical_object* const a,
 	a->m_velocity += a->m_inverse_mass * impulse;
 	b->m_velocity -= b->m_inverse_mass * impulse;
 #endif
-	// std::size_t that pass throw the two objects center.
-	vector3D axes{ b->m_position - a->m_position };
-	// compute that std::size_t in a's coord system
-	auto tmp = a->get_box().get_axes();
-	//axes = {
-	//	axes.dot(a->m_rotation[geometry::AXES::X]), 
-	//	axes.dot(a->m_rotation[geometry::AXES::Y]),
-	//	axes.dot(a->m_box[geometry::AXES::Z]) };
-
 }
 
 void physics::physical_object::update(const scalar delta_time) {
@@ -150,16 +283,30 @@ void physics::physical_object::update(const scalar delta_time) {
 			m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z],
 			m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y], m_velocity[geometry::AXES::Z],
 			m_acceleration[geometry::AXES::X], m_acceleration[geometry::AXES::Y], m_acceleration[geometry::AXES::Z]);
-	if (m_angular_speed > 0.0f) {
-		m_rotation += m_angular_speed * delta_time;
-		m_box.rotate(m_rotation);
-	}
-	// consume the acceleration due forces
+	/* 
+	* Consume the acceleration due to forces 
+	*/
 	m_velocity += m_acceleration * delta_time;
-	// now the position changes due only the velocity
-	geometry::point3D new_position = m_position + m_velocity * delta_time;
-	translate(new_position - m_position);
+	/*
+	* Now the position changes due only the velocity. 
+	* Update as a translation.
+	*/
+	translate(m_velocity * delta_time);
+	/*
+	* Clear accumulation
+	*/
 	m_acceleration.zero();
+	/* 
+	* Update orientation and rotation
+	*/
+#if 0
+	quaternion delta_orientation{ 0, m_angular_velocity[AXES::X] * scalar(0.5), m_angular_velocity[AXES::Y] * scalar(0.5), m_angular_velocity[AXES::Z] * scalar(0.5) };
+	m_orientation += delta_orientation * m_orientation;
+	m_angular_velocity += m_angular_acceleration * delta_time;
+#endif
+	/*
+	* Check if something goes very wrong
+	*/
 	if (std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X])) {
 		tsg::logger::get_instance().write("Exception in {}: physical object computation fails to get a number.", __FILE__);
 		throw;

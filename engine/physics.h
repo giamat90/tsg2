@@ -23,7 +23,7 @@ public:
 		void compute();
 		tsg::vector<scalar, 3> get_scale() { return m_scale; }
 	protected:
-		bool contact(geometry::box3D a, geometry::box3D b);
+		bool contact(geometry::box3D& a, geometry::box3D& b);
 		void resolve_contact(physics::physical_object * const a, physics::physical_object * const b);
 	protected:
 		std::vector<physical_object*> m_objects;
@@ -55,7 +55,7 @@ public:
 				}
 			);
 		}
-		geometry::box3D get_box() const { return m_box; }
+		geometry::box3D& get_box() { return m_box; }
 		void set_mass(const scalar m);
 		scalar get_mass() const { return scalar(1) / m_inverse_mass; }
 		void set_infinite_mass() { m_inverse_mass = scalar(0); }
@@ -65,16 +65,27 @@ public:
 		}
 	protected:
 		physical_world* m_world{ nullptr };
-		geometry::point3D m_position{};
-		geometry::point3D m_velocity{};
-		geometry::point3D m_acceleration{};
-		geometry::scalar m_rotation{};
-		geometry::box3D m_box;
-		geometry::scalar m_angular_speed{};
+		// linear proprieties
+		geometry::vector3D m_position{};
+		geometry::vector3D m_velocity{};
+		geometry::vector3D m_acceleration{};
 		geometry::scalar m_inverse_mass{scalar(1)};
-		geometry::point3D m_forces{};
-		geometry::point3D m_torques{};
-		geometry::point3D m_impulse{};
+		// angular proprietis
+		geometry::quaternion m_orientation{};
+		geometry::vector3D m_angular_velocity{};
+		geometry::vector3D m_angular_acceleration{};
+		geometry::matrix3D m_inverse_intertia_tensor{};
+		geometry::scalar m_rotation{};
+		geometry::scalar m_angular_speed{};
+		// accumulators
+		geometry::vector3D m_forces{};
+		geometry::vector3D m_torques{};
+		geometry::vector3D m_impulse{};
+		// dampings
+		geometry::scalar m_linear_damping{};
+		geometry::scalar m_angular_damping{};
+		// boundaries
+		geometry::box3D m_box;
 	};
 public:
 	/* ctors and dtors methods */
