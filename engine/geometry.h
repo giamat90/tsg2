@@ -152,15 +152,15 @@ namespace geometry {
 			vector3D pv({m_i, m_j, m_k });
 			vector3D qv({ other.m_i, other.m_j, other.m_k });
 			vector3D newVec = m_w * qv + other.m_w * pv + vector3D::cross(pv, qv);
-			retVal.m_i = newVec[AXES::X];
-			retVal.m_j = newVec[AXES::Y];
-			retVal.m_k = newVec[AXES::Z];
+			this->m_i = newVec[AXES::X];
+			this->m_j = newVec[AXES::Y];
+			this->m_k = newVec[AXES::Z];
 
 			// Scalar component is:
 			// ps * qs - pv . qv
-			retVal.m_w = m_w * other.m_w - vector3D::dot(pv, qv);
+			this->m_w = m_w * other.m_w - vector3D::dot(pv, qv);
 
-			return retVal;
+			return *this;
 		}
 
 		inline friend quaternion& operator+(quaternion& lhs, const quaternion& rhs)
@@ -206,20 +206,31 @@ namespace geometry {
 	* forward declarations for friend function
 	*/
 	class finite_plane;
-	class finite_line;
-	scalar distance(const finite_plane& f, const point3D& p);
-	scalar distance(const finite_line& f, const point3D& p);
+	class segment;
+	scalar distance(const point3D& p, const finite_plane& f);
+	scalar distance(const point3D& p, const segment& s);
 	/*
 	* class to compute a finite line in 3D space
 	*/
-	class finite_line {
+	class segment {
 	public:
-		finite_line() = default;
-		virtual ~finite_line() = default;
-		finite_line(const point3D& start, const point3D& end) : 
+		segment() = default;
+		virtual ~segment() = default;
+		segment(const point3D& start, const point3D& end) : 
 			m_start(start), m_end(end), m_vector((end - start).get_normalized()), m_lenght((end - start).get_norm()) {};
+		segment(const segment& other) :
+			m_start(other.m_start), m_end(other.m_end), m_lenght(other.m_lenght), m_vector(other.m_vector) {
+		};
 	public:
-		friend scalar distance(const finite_line&, const point3D&);
+		segment& operator=(const segment& other) {
+			this->m_end = other.m_end;
+			this->m_start = other.m_start;
+			this->m_lenght = other.m_lenght;
+			this->m_vector = other.m_vector;
+			return *this;
+		};
+	public:
+		friend scalar distance(const point3D&, const segment&);
 	private:
 		point3D m_start;
 		point3D m_end;
@@ -244,7 +255,7 @@ namespace geometry {
 			scalar v{ vector3D::dot(projection, m_base[2])};
 			return geometry::abs(u) <= m_half_sizes[0] && geometry::abs(v) <= m_half_sizes[1];
 		}
-		friend scalar distance(const finite_plane&, const vector3D&);
+		friend scalar distance(const point3D&, const finite_plane&);
 	protected:
 		point3D m_center;
 		vector3D m_normal;
@@ -290,33 +301,38 @@ namespace geometry {
 			*   0----------1
 			*/
 			// TODO: verify rows or columns.
-			auto vertex = m_center;
+			point3D vertex = m_center;
 			for (std::size_t i = 0; i < 8; ++i) {
+				/*
 				m_vertexes[i] = {
 					m_center + m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]),
 					m_center + m_base.get_row<1>() * ((i & 1) ? m_half_sizes[1] : -m_half_sizes[1]),
 					m_center + m_base.get_row<2>() * ((i & 1) ? m_half_sizes[2] : -m_half_sizes[2])
 				};
+				*/
+				m_vertexes[i] = m_center +
+					m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
+					m_base.get_row<1>() * ((i & 1) ? m_half_sizes[1] : -m_half_sizes[1]) +
+					m_base.get_row<2>() * ((i & 1) ? m_half_sizes[2] : -m_half_sizes[2]);
 			}
 			/*
 			* Compute edges:
 			* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
 			*/
-			auto vertexes_index = {
+			std::size_t vertexes_index[12][2] = {
 				{0,1}, {1, 3}, {3, 2}, {2, 0},	// front face's ages
 				{4,5}, {5,7}, {7,6}, {6,4},		// behind face's edges
 				{1,5}, {0,4}, {3,7}, {2,6}		// horizontal edges
 			};
 			/* With these vertex index we can compute every edges as edge(end - start). */
 			for (std::size_t i = 0u; i < 12u; ++i) {
-				m_edges[i] = finite_line(vertex_index[i][1] - vertex_index[i][0]);
+				m_edges[i] = segment(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
 			}
 			/*
 			* Compute faces
 			*/
 			for (std::size_t i = 0u; i < 6u; ++i) {
-				m_faces[i] = finite_plane(m_center )
-
+				m_faces[i] = finite_plane(m_center);
 			}
 			/*
 			std::vector<Face> faces;        
@@ -363,7 +379,7 @@ namespace geometry {
 				m_edges[i] = other.m_edges[i];
 			}
 			for (std::size_t i = 0u; i < 6; ++i) {
-				m_fa[i] = other.m_faces[i];
+				m_faces[i] = other.m_faces[i];
 			}
 		};
 		virtual ~box() {};
@@ -422,7 +438,7 @@ namespace geometry {
 		*/
 		point3D m_vertexes[8];
 		finite_plane m_faces[6];
-		finite_line m_edges[12];
+		segment m_edges[12];
 		/* TODO: Leave only one rappresetation:
 		* quaternions less space
 		* matrix less computations -> more efficiency at real time.

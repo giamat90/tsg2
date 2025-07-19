@@ -112,7 +112,7 @@ bool physics::physical_world::contact(geometry::box3D& a, geometry::box3D& b) {
 		* Axes that pass throw the two objects center.
 		* Also known as translation axes
 		*/
-		vector3D axes{ b.get_center() - a.get_center()};
+		vector3D axes{ b.get_center() - a.get_center() };
 		/*
 		* Compute the translation axes in a-obj's coord system
 		*/

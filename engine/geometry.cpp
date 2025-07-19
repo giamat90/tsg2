@@ -2,12 +2,12 @@
 #include <tsg/logger.h>
 
 namespace geometry {
-	scalar distance(const finite_plane& f, const point3D& p) {
+	scalar distance(const point3D&, const finite_plane& f) {
 		/* TODO */
 		return scalar(0);
 	}
 
-	scalar distance(const finite_line& l, const point3D& p) {
+	scalar distance(const point3D&, const segment& s) {
 		/* TODO */
 		return scalar(0);
 	}
