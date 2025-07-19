@@ -21,7 +21,8 @@ void arrow::init() {
 	m_texture->set_scale(0.5f);
 	auto w = m_texture->get_size().get<geometry::AXES::X>();
 	auto h = m_texture->get_size().get<geometry::AXES::Y>();
-	set_box(m_position, { w / scalar(2), h / scalar(2), 0.0f });
+	auto d = m_texture->get_size().get<geometry::AXES::Z>();
+	set_box(m_position, { w / scalar(2), h / scalar(2), d / scalar(2) });
 	set_mass(scalar(1));
 }
 

@@ -48,7 +48,8 @@ void glfw_texture::load(const std::string& asset){
             gl_check_error(__FILE__, __LINE__);
 
             // Upload image data to GPU
-            glTexImage2D(GL_TEXTURE_2D, 0, rgba_format, m_width, m_height, 0, rgba_format, GL_UNSIGNED_BYTE, data);
+            //glTexImage2D(GL_TEXTURE_2D, 0, rgba_format, m_width, m_height, 0, rgba_format, GL_UNSIGNED_BYTE, data);
+            glTexImage3D(GL_TEXTURE_3D, 0, rgba_format, m_width, m_height, m_depth, 0, rgba_format, GL_UNSIGNED_BYTE, data);
             gl_check_error(__FILE__, __LINE__);
 
             // Generate mipmaps

@@ -6,21 +6,21 @@
 
 #define NUMBER_OF_BUBBLE 1
 
-class triangle_game : public game
+class triangle_game : public game<2, triangle_game>
 {
 public:
-	triangle_game();
+	triangle_game(const std::string&, const unsigned, const unsigned, const unsigned);
 	~triangle_game();
 public: // override public-methods
-	bool initialize() override;
-	void run_game() override;
-	void shutdown() override;
-	void initialize_objects() override;
-	void create_physics() override;
+	bool initialize();
+	void run_game();
+	void shutdown();
+	void initialize_objects();
+	void create_physics();
 private: // override private-methods
-	void process_input() override;
-	void update_game() override;
-	void generate_output() override;
+	void process_input();
+	void update_game();
+	void generate_output();
 private: // object
 	arrow m_arrow;
 	bubble m_bubbles[NUMBER_OF_BUBBLE];

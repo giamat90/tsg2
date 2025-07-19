@@ -21,7 +21,9 @@
 #endif
 
 
-triangle_game::triangle_game() : game()/*: m_arrow(m_input)*/  {
+triangle_game::triangle_game(const std::string& window_text, const unsigned h, const unsigned w, const unsigned fps) :
+	game(window_text, h, w, fps)
+{
 	tsg::logger::get_instance().write("triangle ctor");
 }
 
@@ -31,11 +33,7 @@ triangle_game::~triangle_game() {
 
 bool triangle_game::initialize() {
 	bool res{ false };
-	if (initialize_externals()) {
-		create_window("triangle.exe", 1024, 768);
-		create_renderer();
-		create_input();
-		create_timer(60u);
+	if (init()) {
 		create_physics();
 		initialize_objects();
 		m_state = GAME_STATE::RUNNING;
@@ -63,7 +61,7 @@ void triangle_game::shutdown() {
 void triangle_game::create_physics() {
 	/* TODO */
 	geometry::scalar scale = 2.0f;
-	m_physics->set_limits(scalar(m_window->get_width()), scalar(m_window->get_height()), scale);
+	m_physics.set_limits({ scalar(m_window->get_width()), scalar(m_window->get_height()) }, scale);
 }
 
 void triangle_game::initialize_objects() {
@@ -87,15 +85,15 @@ void triangle_game::process_input() {
 	if( game_event::GAME_EVENTS::QUIT == game_event::get_events(this)){
 		m_state = GAME_STATE::SHUT_DOWN;
 	}
-	m_input->process_input();
+	m_input.process_input();
 };
 
 void triangle_game::update_game() {
-	auto tick = m_timer->tick();
-	m_physics->update(tick);
+	auto tick = m_timer.tick();
+	m_physics.update(tick);
 }
 
 void triangle_game::generate_output() {
-	m_renderer->render();
-	m_renderer->draw(m_arrow.get_box());
+	m_renderer.render();
+	m_renderer.draw(m_arrow.get_box());
 }

@@ -4,13 +4,16 @@
 #include "window.h"
 #include <vector>
 
+template <typename GameWindowImpl, typename InputImpl>
 class TSG2_API input {
 public:
 	class TSG2_API playable_object {
 	public:
 		playable_object() = default;
 		virtual ~playable_object() = default;
-		virtual void process_input(input*) = 0;
+		void process_input(input<GameWindowImpl, InputImpl>*);
+
+		bool operator==(const playable_object& other) const = default;
 	};
 public:
 	enum class INPUT_TYPE {
@@ -67,7 +70,7 @@ public:
 		RIGHT
 	};
 public:
-	input(window* w) : m_window(w) {};
+	input(const GameWindowImpl& w) : m_window(w) {};
 	virtual ~input() = default;
 public:
 	void process_input() {
@@ -78,11 +81,11 @@ public:
 public:
 	// kind of inputs events
 	// keyboard
-	virtual bool is_key_pressed(const INPUT_KEY key) = 0;
+	bool is_key_pressed(const INPUT_KEY key) { return static_cast<InputImpl*>(this)->is_key_pressed(key); };
 	// mouse
-	virtual bool is_mouse_clicked(const INPUT_MOUSE side) = 0;
-	virtual bool is_mouse_pressed(const INPUT_MOUSE side) = 0;
-	virtual bool is_mouse_released(const INPUT_MOUSE side) = 0;
+	bool is_mouse_clicked(const INPUT_MOUSE side) { return static_cast<InputImpl*>(this)->is_mouse_clicked(side); };
+	bool is_mouse_pressed(const INPUT_MOUSE side) { return static_cast<InputImpl*>(this)->is_mouse_pressed(side); };
+	bool is_mouse_released(const INPUT_MOUSE side) { return static_cast<InputImpl*>(this)->is_mouse_released(side); };
 	// gamepad
 	/* TODO */
 	// joystick
@@ -93,6 +96,6 @@ public:
 		m_playables.push_back(d);
 	}
 protected:
-	window* m_window{ nullptr };
+	GameWindowImpl m_window;
 	std::vector<playable_object*> m_playables;
 };

@@ -4,7 +4,7 @@
 #include <input.h>
 #include <physics.h>
 
-class arrow : public dynamic_object, public input::playable_object, public physics::physical_object {
+class arrow : public dynamic_object, public input::playable_object, public physics<2>::physical_object {
 public:
 	arrow();
 	~arrow() = default;

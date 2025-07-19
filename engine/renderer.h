@@ -12,6 +12,7 @@
 #include "game_object.h"	// drawable
 #include <vector>
 
+template <typename RendererImpl>
 class TSG2_API renderer {
 public:
 	class creation_exception : public std::exception {
@@ -20,14 +21,15 @@ public:
 	renderer(window * w) : m_window(w) {};
 	virtual ~renderer() = default;
 public: // pure-virtual methods
-	virtual void render() = 0;
-	virtual void clear() = 0;
-	virtual void set_draw_color(const color&) = 0;
-	virtual void draw(sprite*) = 0;
-	virtual void draw(texture*) = 0;
-	virtual void draw(font*) = 0;
-	virtual void draw(geometry::shape*) = 0;
-	virtual void draw(const geometry::box3D&) = 0;
+	void render() { static_cast<RendererImpl*>(this)->renderer(); };
+	void clear() { static_cast<RendererImpl*>(this)->clear(); };
+	void set_draw_color(const color& c) { static_cast<RendererImpl*>(this)->set_draw_color(c); };
+	void draw(sprite* s) { static_cast<RendererImpl*>(this)->draw(s); };
+	void draw(texture* t) { static_cast<RendererImpl*>(this)->draw(t); };
+	void draw(font* f) { static_cast<RendererImpl*>(this)->draw(f); };
+	void draw(geometry::shape* s) { static_cast<RendererImpl*>(this)->draw(s); };
+	void draw(const geometry::box3D& b) { static_cast<RendererImpl*>(this)->draw(b); };
+	void draw(const geometry::box2D& b) { static_cast<RendererImpl*>(this)->draw(b); };
 public:
 	// TODO: evalueate to made it private and friendable of game
 	inline void add_drawable(drawable* d){

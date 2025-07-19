@@ -9,7 +9,6 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <linmath.h>	// mat4x4
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

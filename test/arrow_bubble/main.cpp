@@ -4,7 +4,7 @@
 int main() {
 	tsg::print("Hello Triangle");
 	try {
-		triangle_game t;
+		triangle_game t("triangle.exe", 1024, 768, 60);
 		if (t.initialize())
 		{
 			t.run_game();

@@ -3,7 +3,7 @@
 #include <game_object.h>
 #include <physics.h>
 
-class bubble : public dynamic_object, public physics::physical_object {
+class bubble : public dynamic_object, public physics<2>::physical_object {
 public:
 	bubble();
 	~bubble() = default;

@@ -19,7 +19,7 @@ public:
 		width_t x{};
 		height_t y{};
 	};
-	window(std::string title, width_t w, height_t h) :
+	window(const std::string& title = "", const width_t w = 0u, const height_t h = 0u) :
 		m_title(title), m_width(w), m_height(h) {}
 	virtual ~window() = default;	
 	height_t get_height() const { return m_height; }
