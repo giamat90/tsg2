@@ -246,36 +246,42 @@ void physics::physical_world::resolve_contact(physics::physical_object* const a,
 	* Compute contact data
 	*/
 	geometry::obb_contact resolver(a->get_box(), b->get_box());
-	resolver.compute(geometry::obb_contact::TYPE::VERTEX_FACE);
-
-	/* I know that the box should translate along x of dx. The object has a velocity v that determine a direction
-	* then to compute the point of contact I should translate the object of dx.
-	*/
+	resolver.compute();
+	if (auto res = resolver.get_contact()) {
+		auto contact = res.value();
+		//contact.get_normal();
+		//contact.get_point();
+		/* I know that the box should translate along x of dx. The object has a velocity v that determine a direction
+		* then to compute the point of contact I should translate the object of dx.
+		*/
 #if 1
-	auto a0 = a->m_position;
-	auto b0 = b->m_position;
-	auto va0 = a->m_velocity;
-	auto vb0 = b->m_velocity;
-	//if (!a->m_velocity.is_zero()) {
-	//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-	//	scalar dy{ dx * a->m_velocity.get<AXES::Y>() / a->m_velocity.get<AXES::X>() };
-	//	scalar dz{ dx * a->m_velocity.get<AXES::Z>() / a->m_velocity.get<AXES::X>() };
-	//	a->translate({ -dx, -dy, -dz });
-	//}
-	//else if (!b->m_velocity.is_zero()) {
-	//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-	//	scalar dy{ dx * b->m_velocity.get<AXES::Y>() / b->m_velocity.get<AXES::X>() };
-	//	scalar dz{ dx * b->m_velocity.get<AXES::Z>() / b->m_velocity.get<AXES::X>() };
-	//	b->translate({ -dx, -dy, -dz });
-	//}
-	geometry::point3D point = a->get_box().get_max_point<AXES::X>();
-	geometry::vector3D normal = (a->get_box().get_center() - b->get_box().get_center()).get_normalized();
-	scalar seperataing_velocity{ vector3D::dot((a->m_velocity - b->m_velocity), normal) };
-	scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
-	vector3D impulse{ (-2 * seperataing_velocity / total_inverse_mass) * normal };
-	a->m_velocity += a->m_inverse_mass * impulse;
-	b->m_velocity -= b->m_inverse_mass * impulse;
+		//if (!a->m_velocity.is_zero()) {
+		//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
+		//	scalar dy{ dx * a->m_velocity.get<AXES::Y>() / a->m_velocity.get<AXES::X>() };
+		//	scalar dz{ dx * a->m_velocity.get<AXES::Z>() / a->m_velocity.get<AXES::X>() };
+		//	a->translate({ -dx, -dy, -dz });
+		//}
+		//else if (!b->m_velocity.is_zero()) {
+		//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
+		//	scalar dy{ dx * b->m_velocity.get<AXES::Y>() / b->m_velocity.get<AXES::X>() };
+		//	scalar dz{ dx * b->m_velocity.get<AXES::Z>() / b->m_velocity.get<AXES::X>() };
+		//	b->translate({ -dx, -dy, -dz });
+		//}
+		//geometry::point3D point = a->get_box().get_max_point<AXES::X>();
+		//geometry::vector3D normal = (a->get_box().get_center() - b->get_box().get_center()).get_normalized();
+		geometry::point3D point = contact.get_normal();
+		geometry::vector3D normal = contact.get_point();
+		scalar seperataing_velocity{ vector3D::dot((a->m_velocity - b->m_velocity), normal) };
+		scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
+		vector3D impulse{ (-2 * seperataing_velocity / total_inverse_mass) * normal };
+		a->m_velocity += a->m_inverse_mass * impulse;
+		b->m_velocity -= b->m_inverse_mass * impulse;
 #endif
+	}
+	else {
+		return;
+	}
+
 }
 
 void physics::physical_object::update(const scalar delta_time) {

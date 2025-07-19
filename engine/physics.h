@@ -95,7 +95,7 @@ public:
 	// set proprieties
 	void set_limits(const geometry::scalar width, const geometry::scalar height, const geometry::scalar scale = 1.0f) {
 		m_world->m_scale = { 1.0f / (0.5f * width) , 1.0f / (0.5f * height), scalar(0) };
-		m_world->m_limits = { {scalar(0), scalar(0), scalar(0)}, { 1.0f * scale, 1.0f * scale, 1.0f * scale} };
+		m_world->m_limits = { {scalar(0), scalar(0), scalar(0)}, { scalar(0.5f) * scale, scalar(0.5f) * scale, scalar(0.5f) * scale} };
 	}
 public:
 	inline void update(const float delta_time) {

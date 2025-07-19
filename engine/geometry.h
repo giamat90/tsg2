@@ -8,9 +8,9 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
-#include <concepts>
-
-//#define DOUBLE_PRECISION
+#include <concepts>	// c++20
+#include <array>	
+#include <expected>	// c++23
 
 namespace geometry {
 	template <std::size_t Dim>
@@ -59,6 +59,7 @@ namespace geometry {
 		return std::sin(v);
 	}
 	constexpr scalar epsilon = std::numeric_limits<double>::epsilon();
+	constexpr scalar scalar_zero{ 1e-6 };
 #else
 #define SINGLE_PRECISION
 	using scalar = float;
@@ -82,6 +83,7 @@ namespace geometry {
 		return std::sinf(v);
 	}
 	constexpr scalar epsilon = std::numeric_limits<float>::epsilon();
+	constexpr scalar scalar_zero{ 1e-6f };
 #endif
 
 	using point2D = tsg::vector<scalar, 2>;
@@ -207,8 +209,9 @@ namespace geometry {
 	*/
 	class finite_plane;
 	class segment;
+	scalar distance(const point3D& p, const point3D& q);
 	scalar distance(const point3D& p, const finite_plane& f);
-	scalar distance(const point3D& p, const segment& s);
+	scalar distance(const point3D& p, segment& s); 
 	/*
 	* class to compute a finite line in 3D space
 	*/
@@ -216,11 +219,20 @@ namespace geometry {
 	public:
 		segment() = default;
 		virtual ~segment() = default;
-		segment(const point3D& start, const point3D& end) : 
-			m_start(start), m_end(end), m_vector((end - start).get_normalized()), m_lenght((end - start).get_norm()) {};
+		segment(const point3D& start, const point3D& end) :
+			m_start(start), m_end(end), m_vector((end - start).get_normalized()), m_lenght((end - start).get_norm()) {
+		};
 		segment(const segment& other) :
 			m_start(other.m_start), m_end(other.m_end), m_lenght(other.m_lenght), m_vector(other.m_vector) {
 		};
+	public:
+		vector3D get_direction() const { return m_vector; };
+		scalar get_lenght() const { return m_lenght; };
+	public:
+		/* point in the segment closest to p*/
+		point3D closest_to(const point3D& p);
+		/* point in the segment closer to segment other */
+		std::pair<point3D, point3D> closest_to(const segment& other);
 	public:
 		segment& operator=(const segment& other) {
 			this->m_end = other.m_end;
@@ -230,7 +242,7 @@ namespace geometry {
 			return *this;
 		};
 	public:
-		friend scalar distance(const point3D&, const segment&);
+		friend scalar distance(const point3D&, segment&);
 	private:
 		point3D m_start;
 		point3D m_end;
@@ -246,10 +258,12 @@ namespace geometry {
 		finite_plane(const point3D& c) : m_center(c) {}
 		virtual ~finite_plane() = default;
 	public:
+		vector3D get_normal() const { return m_normal; };
+	public:
 		inline vector3D project(const point3D& p) {
 			return p - m_normal * vector3D::dot(m_normal, p - m_center);
 		}
-		inline bool contain(const point3D& p) {
+		inline bool contain(const point3D& p) const {
 			vector3D projection{ p - m_center };
 			scalar u{ vector3D::dot(projection, m_base[1])};
 			scalar v{ vector3D::dot(projection, m_base[2])};
@@ -273,11 +287,20 @@ namespace geometry {
 	template <std::size_t Dim> requires BoxDimension<Dim>
 	class TSG2_API box : public shape {
 	public:
+		using vector = tsg::vector<scalar, Dim>;
+		using point = tsg::vector<scalar, Dim>;
+		using vertex = tsg::vector<scalar, Dim>;
+		using edge = segment;
+		using face = finite_plane;
+		using vertexes = std::array<vertex, Dim == 3 ? 8 : 4>;
+		using edges = std::array<edge, Dim == 3 ? 12 : 4>;
+		using faces = std::array<face, Dim == 3 ? 6 : 0>;
+	public:
 		box() : shape(), m_center(), m_half_sizes() {};
 		box(const tsg::vector<scalar, Dim>& center, const tsg::vector<scalar, Dim>& half_sizes) :
-			shape(), m_center(center), m_half_sizes(half_sizes) 
+			shape(), m_center(center), m_half_sizes(half_sizes)
 		{
-			/* 
+			/*
 			* Compute vertexes: center ± sizes computed with bit operations, very efficent way
 			*   i | Binario | Bit2 | Bit1 | Bit0 | Z    | Y    | X
 			*	--|---------|------|------|------|------|------|------
@@ -302,7 +325,7 @@ namespace geometry {
 			*/
 			// TODO: verify rows or columns.
 			point3D vertex = m_center;
-			for (std::size_t i = 0; i < 8; ++i) {
+			for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
 				/*
 				m_vertexes[i] = {
 					m_center + m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]),
@@ -312,8 +335,8 @@ namespace geometry {
 				*/
 				m_vertexes[i] = m_center +
 					m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
-					m_base.get_row<1>() * ((i & 1) ? m_half_sizes[1] : -m_half_sizes[1]) +
-					m_base.get_row<2>() * ((i & 1) ? m_half_sizes[2] : -m_half_sizes[2]);
+					m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]) +
+					m_base.get_row<2>() * ((i & 4) ? m_half_sizes[2] : -m_half_sizes[2]);
 			}
 			/*
 			* Compute edges:
@@ -325,52 +348,21 @@ namespace geometry {
 				{1,5}, {0,4}, {3,7}, {2,6}		// horizontal edges
 			};
 			/* With these vertex index we can compute every edges as edge(end - start). */
-			for (std::size_t i = 0u; i < 12u; ++i) {
-				m_edges[i] = segment(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
+			for (std::size_t i = 0u; i < m_edges.size(); ++i) {
+				m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
 			}
 			/*
 			* Compute faces
 			*/
-			for (std::size_t i = 0u; i < 6u; ++i) {
-				m_faces[i] = finite_plane(m_center);
-			}
-			/*
-			std::vector<Face> faces;        
-			// Create 6 faces (±X, ±Y, ±Z in local space)
-			for (int axis = 0; axis < 3; axis++) {
-				for (int sign = -1; sign <= 1; sign += 2) {
-					Face face;
-					face.normal = u[axis] * (float)sign;
-					face.center = center + face.normal * extents.x; // Will be corrected below
-                
-					// Correct center position and set extents
-					if (axis == 0) {
-						face.center = center + u[0] * (extents.x * sign);
-						face.tangent1 = u[1];
-						face.tangent2 = u[2];
-						face.extents2D = Vec3(extents.y, extents.z, 0);
-					} else if (axis == 1) {
-						face.center = center + u[1] * (extents.y * sign);
-						face.tangent1 = u[0];
-						face.tangent2 = u[2];
-						face.extents2D = Vec3(extents.x, extents.z, 0);
-					} else {
-						face.center = center + u[2] * (extents.z * sign);
-						face.tangent1 = u[0];
-						face.tangent2 = u[1];
-						face.extents2D = Vec3(extents.x, extents.y, 0);
-					}                
-					faces.push_back(face);
-				}
-			}        
-			return faces;
-			*/
+			for (std::size_t i = 0u; i < m_faces.size(); ++i) {
+				m_faces[i] = face(m_center);
+			}		
 		};
 		box(const box<Dim>& other) : shape(),
 			m_center(other.m_center),
 			m_half_sizes(other.m_half_sizes),
 			m_direction(other.m_direction),
-			m_base(other.m_base) 
+			m_base(other.m_base)
 		{
 			for (std::size_t i = 0u; i < 8; ++i) {
 				m_vertexes[i] = other.m_vertexes[i];
@@ -383,8 +375,7 @@ namespace geometry {
 			}
 		};
 		virtual ~box() {};
-
-
+	public:
 		// setter
 		inline void set_center(const tsg::vector<scalar, Dim>& c) { m_center = c; }
 		// getters
@@ -397,7 +388,7 @@ namespace geometry {
 		template <std::size_t Ax>
 		inline scalar get_size() const {
 			static_assert(Ax < Dim);
-			return scalar(2)*m_half_sizes[Ax];
+			return scalar(2) * m_half_sizes[Ax];
 		}
 		template <std::size_t Ax>
 		inline scalar get_half_size() const {
@@ -419,6 +410,9 @@ namespace geometry {
 			return m_center[axes] - m_half_sizes[axes];
 		};
 		inline tsg::matrix<scalar, Dim, Dim>& get_axes() { return m_base; };
+		inline vertexes get_vertexes() const { return m_vertexes; }
+		inline edges get_edges() const { return m_edges; };
+		inline faces get_faces() const { return m_faces; };
 	public:
 		/* tronsform methods */
 		void translate(const tsg::vector<scalar, Dim>& pos) {
@@ -426,7 +420,19 @@ namespace geometry {
 		}
 		void rotate(const scalar angle) {
 			/* TODO */
+			assert(false);
 		}
+	public:
+		bool contains(const point& p) {
+			vector v = p - m_center;
+			for (size_t i = 0u; i < Dim; ++i) {
+				scalar projection = vector::dot(v, m_base.get_row(i));
+				if (geometry::abs(projection) > m_half_sizes.get<AXES::X>() + scalar_zero) {
+					return false;
+				}
+			}
+			return true;
+		};
 	private:
 		/*
 		* Quantities necessaries for creation
@@ -436,9 +442,9 @@ namespace geometry {
 		/*
 		* Derived quantities
 		*/
-		point3D m_vertexes[8];
-		finite_plane m_faces[6];
-		segment m_edges[12];
+		vertexes m_vertexes;
+		faces m_faces;
+		edges m_edges;
 		/* TODO: Leave only one rappresetation:
 		* quaternions less space
 		* matrix less computations -> more efficiency at real time.
@@ -506,18 +512,38 @@ namespace geometry {
 
 	class obb_contact {
 	public:
-		obb_contact(geometry::box3D& obb1, geometry::box3D& obb2) : m_obb1(obb1), m_obb2(obb2) {}
 		enum class TYPE {
 			VERTEX_FACE,
-			EDGE_EDGE
+			EDGE_EDGE,
+			UNKNOW
 		};
-		void compute(const TYPE t);
+		class contact {
+			friend obb_contact;
+		public:
+			contact() = default;
+			~contact() = default;
+			contact(const point3D& pt, const vector3D& vec, const scalar pen, const TYPE type = TYPE::UNKNOW) :
+				m_point(pt), m_normal(vec), m_penetration(pen), m_type(type) {}
+		public:
+			point3D get_point() const { return m_point; }
+			vector3D get_normal() const { return m_normal; }
+		private:
+			point3D m_point{};
+			vector3D m_normal{};
+			scalar m_penetration{};
+			TYPE m_type{ TYPE::UNKNOW };
+		};
+	public:
+		obb_contact(geometry::box3D& obb1, geometry::box3D& obb2) : m_obb1(obb1), m_obb2(obb2) {}
+		std::expected<contact, bool> get_contact();
+		void compute();
 	private:
 		void vertex_face();
 		void edge_edge();
 	private:
-		geometry::box3D& m_obb1;
-		geometry::box3D& m_obb2;
+		box3D& m_obb1;
+		box3D& m_obb2;
+		std::vector<contact> m_contacts;
 	};
 
 }
