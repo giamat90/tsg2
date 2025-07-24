@@ -2,7 +2,8 @@
 #include <tsg/logger.h>
 #include <tsg/types.h>
 #include <tsg/io.h>
-#include <glad/gl.h>
+#include "gl_includes.h"
+#include "gl_utility.h"
 
 static void resize_window_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);

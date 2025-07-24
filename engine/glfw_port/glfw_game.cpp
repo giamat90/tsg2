@@ -1,8 +1,7 @@
 #ifdef USE_GLFW
 
 #include "glfw_game.h"
-#include <GLFW/glfw3.h>
-
+#include "gl_includes.h"
 
 bool glfw_game::init() {
 	// Initialize GL and GLFW

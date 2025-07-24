@@ -1,8 +1,8 @@
 #pragma once
 
 #include <tsg/types.h>
-#include <glad/gl.h>
 #include <filesystem>
+#include "gl_includes.h"
 
 class shader : public tsg::adapter_v<GLuint>{
 public:

@@ -3,6 +3,7 @@
 #include <tsg2.h>
 #include <tsg/types.h>
 #include <window.h>
+#include "gl_includes.h"
 
 class TSG2_API glfw_window : public window, public tsg::adapter<GLFWwindow> {
 public:

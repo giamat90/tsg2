@@ -6,7 +6,7 @@
 #include "shader.h"
 #include "vertex.h"
 
-class TSG2_API glfw_renderer : public renderer<glfw_renderer>
+class TSG2_API glfw_renderer : public renderer<glfw_window, glfw_renderer>
 {
 public:
 	template <typename S>
@@ -29,6 +29,7 @@ public: // overrided methods
 	void draw(font*);
 	void draw(geometry::shape*);
 	void draw(const geometry::box3D&);
+	void draw(const geometry::box2D&);
 private:
 	shader m_shader;
 	sprite_vertex m_vertex;

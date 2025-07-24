@@ -19,6 +19,9 @@ namespace geometry {
 	template <std::size_t Dim>
 	concept Dimension3D = Dim == 3;
 
+	template <std::size_t Dim>
+	concept GeometricDimension = Dimension2D<Dim> || Dimension3D<Dim>;
+
 	enum AXES : std::size_t {
 		X = 0u,
 		Y = 1u,
@@ -191,7 +194,7 @@ namespace geometry {
 		scalar m_k{};
 	};
 
-	class TSG2_API shape {
+	class shape {
 	public:
 		enum class TYPE {
 			NONE,
@@ -204,35 +207,110 @@ namespace geometry {
 	protected:
 		TYPE m_type{ TYPE::NONE };
 	};
-	/*
-	* forward declarations for friend function
-	*/
-	class finite_plane;
-	class segment;
-	scalar distance(const point3D& p, const point3D& q);
-	scalar distance(const point3D& p, const finite_plane& f);
-	scalar distance(const point3D& p, segment& s); 
+
+	
 	/*
 	* class to compute a finite line in 3D space
 	*/
+	// impl
+	template <std::size_t Dim> requires GeometricDimension<Dim>
 	class segment {
+		using point = tsg::vector<scalar, Dim>;
+		using vector = tsg::vector<scalar, Dim>;
 	public:
 		segment() = default;
 		virtual ~segment() = default;
-		segment(const point3D& start, const point3D& end) :
+		segment(const point& start, const point& end) :
 			m_start(start), m_end(end), m_vector((end - start).get_normalized()), m_lenght((end - start).get_norm()) {
 		};
 		segment(const segment& other) :
 			m_start(other.m_start), m_end(other.m_end), m_lenght(other.m_lenght), m_vector(other.m_vector) {
 		};
 	public:
-		vector3D get_direction() const { return m_vector; };
+		vector get_direction() const { return m_vector; };
 		scalar get_lenght() const { return m_lenght; };
 	public:
 		/* point in the segment closest to p*/
-		point3D closest_to(const point3D& p);
+		point closest_to(const point& p) {
+			if constexpr (Dim == 2) {
+				/* TODO  */
+				assert(0);
+				// 2D case
+				vector2D segment_vector = (m_vector * m_lenght);
+				scalar t = vector2D::dot(segment_vector, (p - m_start));
+				t = std::max(scalar(0), std::min(scalar(1), t));
+				return m_start + (segment_vector * t);
+			}
+			else if constexpr (Dim == 3) {
+				// 3D case
+				vector3D segment_vector = (m_vector * m_lenght);
+				scalar t = vector3D::dot(segment_vector, (p - m_start));
+				t = std::max(scalar(0), std::min(scalar(1), t));
+				return m_start + (segment_vector * t);
+			}
+		};
 		/* point in the segment closer to segment other */
-		std::pair<point3D, point3D> closest_to(const segment& other);
+		std::pair<point, point> closest_to(const segment& other) {
+			if constexpr (Dim == 2) {
+				/* TODO */
+				assert(0);
+				return closest_to(other.m_start, other.m_end);
+			}
+			else if constexpr (Dim == 3) {
+				/* Explaination:
+				* segment this:		p(s) = m_center + s * da		s \in [0,1]
+				* segment other:	q(t) = other.m_center + t * db	t \in [0,1]
+				* The result is given to the minimum of this function:
+				* d^2(s,t) = |p(s) - q(t)|^2 =
+				*		= |m_center + s * da - other.m_center - t * db|^2
+				*		= |r + s * da - t * db |^2
+				* with r = m_center - other.m_center
+				* => d^2(s,t) = dot( (r + s * da - t * db), (r + s * da - t * db) ) =
+				*		= dot(r,r) + 2s*dot(da,r) - 2t*dot(db,r) + s^2*dot(da,da) - 2st*dot(da,db) + t^2*dot(db,db)
+				*		= s^2 * da2 - 2st * dab + t^2 * db2 + 2s * dot(da,r) - 2t * dot(db,r) + r2
+				* The minimus is given by the solution of the sistem of partial derivation:
+				*	df / ds = 0		=>		2s * da2 - 2t * dab 2 * dot(da,r)
+				*	df / dt = 0		=>		-2s * dab + 2t * db2 -2 * dot(db,r)
+				*	=>	s*da2 - t*dab = -dot(da,r)
+				*	=>	-s*dab + tdb2 = dot(db,r)
+				* In matrix form:
+				*	|  da2	-dab | | s |   | -dot(da,r) |
+				*	|			 | |   | = |			|
+				*	| -dab	 db2 | | t |   |  dot(db,r) |
+				*/
+				vector3D da = m_end - m_start;				// direction of segment a
+				vector3D db = other.m_end - other.m_start;	// direction of segment b
+				vector3D r = m_start - other.m_start;		// 
+
+				scalar da2 = vector3D::dot(da, da);	// |da|^2
+				scalar db2 = vector3D::dot(db, db); // |db|^2
+				scalar dab = vector3D::dot(da, db); // parallelism
+				scalar da_over_r = vector3D::dot(da, r);	// projection r over va
+				scalar db_over_r = vector3D::dot(db, r);	// projection r over vb
+
+				/* scalar parameters of the segment parametric equation  */
+				scalar s{};
+				scalar t{};
+				/* checking for almost parallel edges */
+				scalar denom = da2 * db2 - dab * dab;	// determinant of the cramer system
+				if (denom < scalar_zero) {
+					t = dab > da2 ? da_over_r / dab : db_over_r / db2;
+				}
+				else {
+					s = (dab * db_over_r - db2 * da_over_r) / denom;
+					t = (da2 * db_over_r - dab * da_over_r) / denom;
+				}
+
+				return {
+					m_start + da * std::max(scalar(0), std::min(scalar(1), s)),
+					other.m_start + db * std::max(scalar(0), std::min(scalar(1), t))
+				};
+			}
+			else {
+				assert(0); // unsupported dimension
+				return { point(), point() };
+			}
+		}
 	public:
 		segment& operator=(const segment& other) {
 			this->m_end = other.m_end;
@@ -241,39 +319,40 @@ namespace geometry {
 			this->m_vector = other.m_vector;
 			return *this;
 		};
-	public:
-		friend scalar distance(const point3D&, segment&);
 	private:
-		point3D m_start;
-		point3D m_end;
-		vector3D m_vector{};
+		point m_start;
+		point m_end;
+		vector m_vector{};
 		scalar m_lenght;
 	};
 	/*
 	* class to compute a finite/limited plane, like a face or a wall, in 3D space
 	*/
+	template<std::size_t Dim> requires GeometricDimension<Dim>
 	class finite_plane {
+		using point = tsg::vector<scalar, Dim>;
+		using vector = tsg::vector<scalar, Dim>;
 	public:
 		finite_plane() = default;
-		finite_plane(const point3D& c) : m_center(c) {}
+		finite_plane(const point& c) : m_center(c) {}
 		virtual ~finite_plane() = default;
 	public:
-		vector3D get_normal() const { return m_normal; };
+		vector get_normal() const { return m_normal; };
+		point get_center() const { return m_center; };
 	public:
-		inline vector3D project(const point3D& p) {
-			return p - m_normal * vector3D::dot(m_normal, p - m_center);
+		inline vector3D project(const point& p) {
+			return p - m_normal * vector::dot(m_normal, p - m_center);
 		}
 		inline bool contain(const point3D& p) const {
 			vector3D projection{ p - m_center };
-			scalar u{ vector3D::dot(projection, m_base[1])};
-			scalar v{ vector3D::dot(projection, m_base[2])};
+			scalar u{ vector::dot(projection, m_base[1])};
+			scalar v{ vector::dot(projection, m_base[2])};
 			return geometry::abs(u) <= m_half_sizes[0] && geometry::abs(v) <= m_half_sizes[1];
 		}
-		friend scalar distance(const point3D&, const finite_plane&);
 	protected:
-		point3D m_center;
-		vector3D m_normal;
-		vector3D m_base[2];
+		point m_center;
+		vector m_normal;
+		vector m_base[2];
 		vector2D m_half_sizes;
 	};
 
@@ -281,20 +360,18 @@ namespace geometry {
 	* The box has validity only for 2 or 3 dimension (as per now). 
 	* Then the concept.
 	*/
-	template <std::size_t Dim>
-	concept BoxDimension = Dimension2D<Dim> || Dimension3D<Dim>;
 	// impl
-	template <std::size_t Dim> requires BoxDimension<Dim>
-	class TSG2_API box : public shape {
+	template <std::size_t Dim> requires GeometricDimension<Dim>
+	class box : public shape {
 	public:
 		using vector = tsg::vector<scalar, Dim>;
 		using point = tsg::vector<scalar, Dim>;
 		using vertex = tsg::vector<scalar, Dim>;
-		using edge = segment;
-		using face = finite_plane;
+		using edge = segment<Dim>;
+		using face = finite_plane<Dim>;
 		using vertexes = std::array<vertex, Dim == 3 ? 8 : 4>;
 		using edges = std::array<edge, Dim == 3 ? 12 : 4>;
-		using faces = std::array<face, Dim == 3 ? 6 : 0>;
+		using faces = std::array<face, Dim == 3 ? 6 : 1>;
 	public:
 		box() : shape(), m_center(), m_half_sizes() {};
 		box(const tsg::vector<scalar, Dim>& center, const tsg::vector<scalar, Dim>& half_sizes) :
@@ -324,7 +401,7 @@ namespace geometry {
 			*   0----------1
 			*/
 			// TODO: verify rows or columns.
-			point3D vertex = m_center;
+			point vertex = m_center;
 			for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
 				/*
 				m_vertexes[i] = {
@@ -378,6 +455,9 @@ namespace geometry {
 	public:
 		// setter
 		inline void set_center(const tsg::vector<scalar, Dim>& c) { m_center = c; }
+		//inline void set_center(tsg::vector<scalar, Dim> c) { m_center = c; }
+		inline void set_half_sizes(const tsg::vector<scalar, Dim>& hs) { m_half_sizes = hs; }
+		//inline void set_half_sizes(tsg::vector<scalar, Dim> hs) { m_half_sizes = hs; }
 		// getters
 		inline tsg::vector<scalar, Dim> get_center() const { return m_center; };
 		template <std::size_t Ax>
@@ -437,8 +517,8 @@ namespace geometry {
 		/*
 		* Quantities necessaries for creation
 		*/
-		point3D m_center{};
-		vector3D m_half_sizes{};
+		point m_center{};
+		vector m_half_sizes{};
 		/*
 		* Derived quantities
 		*/
@@ -457,7 +537,7 @@ namespace geometry {
 	using box2D = box<2>;
 	using box3D = box<3>;
 
-	class TSG2_API circle : public shape {
+	class circle : public shape {
 	public:
 		circle(const scalar x = 0.0f, const scalar y = 0.0f, const scalar r = 0.0f) : m_center({ x, y }), m_radius(r) {}
 	public:
@@ -468,7 +548,25 @@ namespace geometry {
 		scalar m_radius;
 	};
 
-	class TSG2_API surface : public shape {
+	/* distance functions  point - point */
+	template<std::size_t Dim> requires Dimension2D<Dim> || Dimension3D<Dim>
+	scalar distance(const tsg::vector<scalar, Dim>&p, const tsg::vector<scalar, Dim>&q) {
+		return (p - q).get_norm();
+	}
+	/* distance functions  point - plane */
+	template<std::size_t Dim> requires Dimension3D<Dim>
+	scalar distance(const tsg::vector<scalar, Dim>& p, const finite_plane<Dim>& f) {
+		return  vector3D::dot((p - f.get_center()), f.get_normal());
+	};
+	/* distance functions  point - segment */
+	template<std::size_t Dim> requires Dimension2D<Dim> || Dimension3D<Dim>
+	scalar distance(const tsg::vector<scalar, Dim>&p, segment<Dim>& s) {
+		/* TODO */
+		assert(0);
+		return scalar(0);
+	}
+
+	class surface : public shape {
 	public:
 		surface() = default;
 		~surface() = default;
@@ -510,7 +608,7 @@ namespace geometry {
 
 	};
 
-	class obb_contact {
+	class TSG_API obb_contact {
 	public:
 		enum class TYPE {
 			VERTEX_FACE,

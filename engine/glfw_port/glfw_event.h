@@ -2,12 +2,13 @@
 
 #if USE_GLFW
 
+#include "../tsg2.h"
 #include "../game_event.h"
 #include "glfw_window.h"
 
-class glfw_event : public game_event<glfw_window, glfw_event> {
+class TSG2_API glfw_event : public game_event<glfw_window, glfw_event>{
 public:
-	glfw_event::GAME_EVENTS get_events();
+	GAME_EVENTS get_events();
 };
 
 #endif

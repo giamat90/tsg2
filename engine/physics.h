@@ -12,9 +12,10 @@ using geometry::scalar;
 using geometry::quaternion;
 using geometry::matrix3D;
 
-template <std::size_t Dim> requires geometry::BoxDimension<Dim>
-class TSG2_API physics {
+template <std::size_t Dim> requires geometry::GeometricDimension<Dim>
+class physics {
 	/* Generic definitions */
+	/* TODO: parametrize the size*/
 	using vector = tsg::vector<scalar, Dim>;
 	using point = tsg::vector<scalar, Dim>;
 	using box = geometry::box<Dim>;
@@ -22,7 +23,7 @@ public:
 	/* Support classes */
 	/* Class of physical world that determine limits, determine contacs and resolve them. */
 	class physical_object; // forward declaration
-	class TSG2_API physical_world {
+	class physical_world {
 		friend physics;
 	public:
 		physical_world() = default;
@@ -111,10 +112,12 @@ public:
 			}
 			else if constexpr (Dim == 2) {
 				/* TODO */
-				static_assert(false);
+				assert(0);
+				//static_assert(false);
 			}
 			else {
-				static_assert(false);
+				assert(0);
+				//static_assert(false);
 			}
 		};
 		vector get_scale() { return m_scale; }
@@ -320,16 +323,14 @@ public:
 		vector m_forces;
 	};
 	/* physical_object to compute motion and collisions */
-	class TSG2_API physical_object : public updateable {
+	class physical_object {
 		friend physics;
 	public:
-		physical_object() = default;
-		virtual ~physical_object() = default;
 	public:
 		void set_physical_world(physical_world* const world) { m_world = world; }
 	public:
 		// updateable method overrides
-		void update(const scalar delta_time) override {
+		void update(const scalar delta_time) {
 			tsg::logger::get_instance().write("{}: p=({},{},{}), v=({},{},{}), a=({},{},{})", this,
 				m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z],
 				m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y], m_velocity[geometry::AXES::Z],
@@ -425,9 +426,19 @@ public:
 public:
 	// set proprieties
 	void set_limits(const vector& half_sizes, const scalar scale = scalar(1.0f)) {
-		/* in 3D case: { 1.0f / (0.5f * width) , 1.0f / (0.5f * height), 1.0f / (0.5f * depth) } */
-		m_world->m_scale = half_sizes.reciprocal() * scalar(2.0f);
-		m_world->m_limits = { vector().zero(), vector(scale * scalar(0.5f)) };
+		/*
+		* in 3D case: { 1.0f / (0.5f * width) , 1.0f / (0.5f * height), 1.0f / (0.5f * depth) } 
+		* in 2D case: { 1.0f / (0.5f * width) , 1.0f / (0.5f * height) } 
+		*/
+		if (auto res = half_sizes.reciprocal()) {
+			m_world->m_scale = res.value() * scalar(2.0f) * scale;
+		}
+		else {
+			assert(false);
+		}
+		/* setting world limits */
+		m_world->m_limits.set_center(vector(scalar(0)));
+		m_world->m_limits.set_half_sizes(vector(scale * scalar(0.5)));
 	}
 public:
 	inline void update(const float delta_time) {

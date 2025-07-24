@@ -4,7 +4,7 @@
 #include <exception>
 #include <string>
 
-class TSG2_API window {
+class window {
 public:
 	using width_t = std::uint32_t;
 	using height_t = std::uint32_t;

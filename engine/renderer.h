@@ -2,7 +2,7 @@
 
 #include "tsg2.h"
 #include <exception>
-#include "window.h"
+//#include "window.h"
 #include "geometry.h"
 #include "sprite.h"
 #include "texture.h"
@@ -12,16 +12,16 @@
 #include "game_object.h"	// drawable
 #include <vector>
 
-template <typename RendererImpl>
-class TSG2_API renderer {
+template <typename WindowImpl, typename RendererImpl>
+class renderer {
 public:
 	class creation_exception : public std::exception {
 		const char* what() { return "renderer creation exception"; }
 	};
-	renderer(window * w) : m_window(w) {};
+	renderer(WindowImpl* w) : m_window(w) {};
 	virtual ~renderer() = default;
 public: // pure-virtual methods
-	void render() { static_cast<RendererImpl*>(this)->renderer(); };
+	void render() { static_cast<RendererImpl*>(this)->render(); };
 	void clear() { static_cast<RendererImpl*>(this)->clear(); };
 	void set_draw_color(const color& c) { static_cast<RendererImpl*>(this)->set_draw_color(c); };
 	void draw(sprite* s) { static_cast<RendererImpl*>(this)->draw(s); };
@@ -36,8 +36,6 @@ public:
 		m_drawables.push_back(d);
 	}
 protected:
-	window* m_window{ nullptr };
+	WindowImpl* m_window;
 	std::vector<drawable*> m_drawables;
-
-
 };

@@ -61,7 +61,7 @@ void triangle_game::shutdown() {
 void triangle_game::create_physics() {
 	/* TODO */
 	geometry::scalar scale = 2.0f;
-	m_physics.set_limits({ scalar(m_window->get_width()), scalar(m_window->get_height()) }, scale);
+	m_physics.set_limits({ scalar(m_window.get_width()), scalar(m_window.get_height()) }, scale);
 }
 
 void triangle_game::initialize_objects() {
@@ -82,7 +82,7 @@ void triangle_game::initialize_objects() {
 }
 
 void triangle_game::process_input() {
-	if( game_event::GAME_EVENTS::QUIT == game_event::get_events(this)){
+	if( GAME_EVENTS::QUIT == get_event()){
 		m_state = GAME_STATE::SHUT_DOWN;
 	}
 	m_input.process_input();
@@ -95,5 +95,5 @@ void triangle_game::update_game() {
 
 void triangle_game::generate_output() {
 	m_renderer.render();
-	m_renderer.draw(m_arrow.get_box());
+	//m_renderer.draw(m_arrow.get_box());
 }

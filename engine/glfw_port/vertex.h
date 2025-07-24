@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glad/gl.h>
 #include <tsg/types.h>
+#include "gl_includes.h"
 
 class vertex : public tsg::adapter_v<GLuint> {
 public:

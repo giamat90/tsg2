@@ -10,6 +10,8 @@ if(USE_GLFW)
 	# Include directories
 	include_directories(${CMAKE_SOURCE_DIR}/externals/tsg/include)
 	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/include)
+	include_directories(${CMAKE_SOURCE_DIR}/externals/)
+	include_directories(${CMAKE_SOURCE_DIR}/externals/GLFW/deps)
 
 	# Set up source groups for Visual Studio filters
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "source" FILES ${HELLO_TRIANGLE_SOURCE})

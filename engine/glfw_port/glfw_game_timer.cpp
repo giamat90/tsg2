@@ -1,7 +1,7 @@
 #include "glfw_game_timer.h"
 #include <tsg/io.h>
-#include <glad/gl.h>
 #include "gl_utility.h"
+#include "gl_includes.h"
 
 glfw_game_timer::glfw_game_timer(const unsigned fps) : game_timer(fps) {
 	glfwSetTime(0.0f);

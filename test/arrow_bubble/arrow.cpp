@@ -28,14 +28,15 @@ void arrow::init() {
 
 void arrow::update(const scalar delta_time) {
 	/* ToDo */
-	physical_object::update(delta_time);
+	physics<2>::physical_object::update(delta_time);
 	m_texture->set_where(texture::position({ m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z] }));
 	m_texture->set_rotation(m_rotation);
 }
 
-void arrow::process_input(input* input) {
+#if 0
+void arrow::process_input(input_engine* input) {
 	//m_velocity.zero();
-	if (input->is_key_pressed(input::INPUT_KEY::KEY_W)) {
+	if (input->is_key_pressed(input_engine::INPUT_KEY::KEY_W)) {
 		/* Go up */
 		push({ scalar(0), scalar(1), scalar(0) });
 	}
@@ -65,7 +66,7 @@ void arrow::process_input(input* input) {
 		/* Rotate right */
 		push({ geometry::cos(m_rotation), geometry::sin(m_rotation), 0.0f });
 	}
-	if (input->is_key_pressed(input::INPUT_KEY::KEY_DOWN)) {
+	if (input->is_key_pressed(input_engine::INPUT_KEY::KEY_DOWN)) {
 		/* Rotate right */
 		push({ -geometry::cos(m_rotation), -geometry::sin(m_rotation), 0.0f });
 	}
@@ -74,3 +75,4 @@ void arrow::process_input(input* input) {
 		/* JUMP */
 	}
 }
+#endif

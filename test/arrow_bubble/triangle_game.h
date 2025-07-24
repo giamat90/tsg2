@@ -17,7 +17,7 @@ public: // override public-methods
 	void shutdown();
 	void initialize_objects();
 	void create_physics();
-private: // override private-methods
+protected: // override private-methods
 	void process_input();
 	void update_game();
 	void generate_output();

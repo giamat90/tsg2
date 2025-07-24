@@ -2,9 +2,9 @@
 
 #ifdef USE_GLFW
 
-#include "../game.h"
+#include "../tsg2.h"
 
-class glfw_game {
+class TSG2_API glfw_game {
 public:
 	bool init();
 	void quit();

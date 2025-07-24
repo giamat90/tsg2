@@ -2,7 +2,6 @@
 #include "glfw_converter.h"
 #include <tsg/logger.h>
 #include <tsg/io.h>         // print
-#include <glad/gl.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>      // stbi_load
 #include "gl_utility.h" // gl_check_error
