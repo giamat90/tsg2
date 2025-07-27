@@ -9,7 +9,7 @@
 #include <cmath>
 #include <limits>
 #include <concepts>	// c++20
-#include <array>	
+#include <array>	// c++11
 #include <expected>	// c++23
 
 namespace geometry {
@@ -229,6 +229,8 @@ namespace geometry {
 	public:
 		vector get_direction() const { return m_vector; };
 		scalar get_lenght() const { return m_lenght; };
+		point get_start() const { return m_start; };
+		point get_end() const { return m_end; };
 	public:
 		/* point in the segment closest to p*/
 		point closest_to(const point& p) {
@@ -356,13 +358,28 @@ namespace geometry {
 		vector2D m_half_sizes;
 	};
 
+	class bounding_volume {
+	public:
+		enum class type {
+			box,
+			sphere,
+			unknown
+		};
+	public:
+		bounding_volume(const type t = type::unknown, const std::size_t d = 0u) : m_type(t), m_dimension(d) {};
+		virtual ~bounding_volume() = default;
+		const type get_type() const { return m_type; };
+		const std::size_t get_dimension() const { return m_dimension; };
+	protected:
+		type m_type{ type::unknown };
+		std::size_t m_dimension{};
+	};
 	/*
 	* The box has validity only for 2 or 3 dimension (as per now). 
 	* Then the concept.
 	*/
-	// impl
 	template <std::size_t Dim> requires GeometricDimension<Dim>
-	class box : public shape {
+	class box : public bounding_volume {
 	public:
 		using vector = tsg::vector<scalar, Dim>;
 		using point = tsg::vector<scalar, Dim>;
@@ -373,69 +390,22 @@ namespace geometry {
 		using edges = std::array<edge, Dim == 3 ? 12 : 4>;
 		using faces = std::array<face, Dim == 3 ? 6 : 1>;
 	public:
-		box() : shape(), m_center(), m_half_sizes() {};
+		box() : bounding_volume(type::box, Dim), m_center(), m_half_sizes() {};
 		box(const tsg::vector<scalar, Dim>& center, const tsg::vector<scalar, Dim>& half_sizes) :
-			shape(), m_center(center), m_half_sizes(half_sizes)
+			bounding_volume(type::box, Dim), m_center(center), m_half_sizes(half_sizes)
 		{
-			/*
-			* Compute vertexes: center ± sizes computed with bit operations, very efficent way
-			*   i | Binario | Bit2 | Bit1 | Bit0 | Z    | Y    | X
-			*	--|---------|------|------|------|------|------|------
-			*	0 |   000   |  0   |  0   |  0   | -ext | -ext | -ext
-			*	1 |   001   |  0   |  0   |  1   | -ext | -ext | +ext
-			*	2 |   010   |  0   |  1   |  0   | -ext | +ext | -ext
-			*	3 |   011   |  0   |  1   |  1   | -ext | +ext | +ext
-			*	4 |   100   |  1   |  0   |  0   | +ext | -ext | -ext
-			*	5 |   101   |  1   |  0   |  1   | +ext | -ext | +ext
-			*	6 |   110   |  1   |  1   |  0   | +ext | +ext | -ext
-			*	7 |   111   |  1   |  1   |  1   | +ext | +ext | +ext
-			*  The order is this:
-			*      6----------7
-			*     /|         /|
-			*    / |        / |
-			*   2----------3  |
-			*   |  |       |  |
-			*   |  4-------|--5
-			*   | /        | /
-			*   |/         |/
-			*   0----------1
-			*/
-			// TODO: verify rows or columns.
-			point vertex = m_center;
-			for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
-				/*
-				m_vertexes[i] = {
-					m_center + m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]),
-					m_center + m_base.get_row<1>() * ((i & 1) ? m_half_sizes[1] : -m_half_sizes[1]),
-					m_center + m_base.get_row<2>() * ((i & 1) ? m_half_sizes[2] : -m_half_sizes[2])
-				};
-				*/
-				m_vertexes[i] = m_center +
-					m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
-					m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]) +
-					m_base.get_row<2>() * ((i & 4) ? m_half_sizes[2] : -m_half_sizes[2]);
+			if constexpr (Dim == 2) {
+				compute2D();
 			}
-			/*
-			* Compute edges:
-			* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
-			*/
-			std::size_t vertexes_index[12][2] = {
-				{0,1}, {1, 3}, {3, 2}, {2, 0},	// front face's ages
-				{4,5}, {5,7}, {7,6}, {6,4},		// behind face's edges
-				{1,5}, {0,4}, {3,7}, {2,6}		// horizontal edges
-			};
-			/* With these vertex index we can compute every edges as edge(end - start). */
-			for (std::size_t i = 0u; i < m_edges.size(); ++i) {
-				m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
+			else if constexpr (Dim == 3) {
+				compute3D();
 			}
-			/*
-			* Compute faces
-			*/
-			for (std::size_t i = 0u; i < m_faces.size(); ++i) {
-				m_faces[i] = face(m_center);
-			}		
+			else {
+				assert(0); // unsupported dimension
+			}			
 		};
-		box(const box<Dim>& other) : shape(),
+		box(const box<Dim>& other) : 
+			bounding_volume(type::box),
 			m_center(other.m_center),
 			m_half_sizes(other.m_half_sizes),
 			m_direction(other.m_direction),
@@ -489,7 +459,7 @@ namespace geometry {
 			assert(axes < Dim);
 			return m_center[axes] - m_half_sizes[axes];
 		};
-		inline tsg::matrix<scalar, Dim, Dim>& get_axes() { return m_base; };
+		inline const tsg::matrix<scalar, Dim, Dim>& get_axes() const { return m_base; };
 		inline vertexes get_vertexes() const { return m_vertexes; }
 		inline edges get_edges() const { return m_edges; };
 		inline faces get_faces() const { return m_faces; };
@@ -515,6 +485,105 @@ namespace geometry {
 		};
 	private:
 		/*
+		* Private methods to compute the box vertexes, edges and faces
+		*/
+		void compute2D() {
+			/*
+			* Compute vertexes: center ± sizes computed with bit operations, very efficent way
+			*   i | Binario | Bit1 | Bit0 | Y    | X
+			*	--|---------|------|------|------|------
+			*	0 |    00   |  0   |  0   | -ext | -ext
+			*	1 |    01   |  0   |  1   | -ext | +ext
+			*	2 |    10   |  1   |  0   | +ext | -ext
+			*	3 |    11   |  1   |  1   | +ext | +ext
+			*  The order is this: 
+			* 
+			*   2----------3
+			*   |          |
+			*   |          |  
+			*   |          | 
+			*   |          |
+			*   0----------1
+			*/
+			// TODO: verify rows or columns.
+			point vertex = m_center;
+			for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
+				m_vertexes[i] = m_center +
+					m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
+					m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]);
+			}
+			/*
+			* Compute edges:
+			* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
+			*/
+			std::size_t vertexes_index[4][2] = {
+				{0,1}, {1, 3}, {3, 2}, {2, 0}
+			};
+			/* With these vertex index we can compute every edges as edge(end - start). */
+			for (std::size_t i = 0u; i < m_edges.size(); ++i) {
+				m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
+			}
+			/*
+			* Compute faces
+			*/
+			for (std::size_t i = 0u; i < m_faces.size(); ++i) {
+				m_faces[i] = face(m_center);
+			}
+		};
+		void compute3D() {
+			/*
+			* Compute vertexes: center ± sizes computed with bit operations, very efficent way
+			*   i | Binario | Bit2 | Bit1 | Bit0 | Z    | Y    | X
+			*	--|---------|------|------|------|------|------|------
+			*	0 |   000   |  0   |  0   |  0   | -ext | -ext | -ext
+			*	1 |   001   |  0   |  0   |  1   | -ext | -ext | +ext
+			*	2 |   010   |  0   |  1   |  0   | -ext | +ext | -ext
+			*	3 |   011   |  0   |  1   |  1   | -ext | +ext | +ext
+			*	4 |   100   |  1   |  0   |  0   | +ext | -ext | -ext
+			*	5 |   101   |  1   |  0   |  1   | +ext | -ext | +ext
+			*	6 |   110   |  1   |  1   |  0   | +ext | +ext | -ext
+			*	7 |   111   |  1   |  1   |  1   | +ext | +ext | +ext
+			*  The order is this:
+			*      6----------7
+			*     /|         /|
+			*    / |        / |
+			*   2----------3  |
+			*   |  |       |  |
+			*   |  4-------|--5
+			*   | /        | /
+			*   |/         |/
+			*   0----------1
+			*/
+			// TODO: verify rows or columns.
+			point vertex = m_center;
+			for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
+				m_vertexes[i] = m_center +
+					m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
+					m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]) +
+					m_base.get_row<2>() * ((i & 4) ? m_half_sizes[2] : -m_half_sizes[2]);
+			}
+			/*
+			* Compute edges:
+			* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
+			*/
+			std::size_t vertexes_index[12][2] = {
+				{0,1}, {1, 3}, {3, 2}, {2, 0},	// front face's ages
+				{4,5}, {5,7}, {7,6}, {6,4},		// behind face's edges
+				{1,5}, {0,4}, {3,7}, {2,6}		// horizontal edges
+			};
+			/* With these vertex index we can compute every edges as edge(end - start). */
+			for (std::size_t i = 0u; i < m_edges.size(); ++i) {
+				m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
+			}
+			/*
+			* Compute faces
+			*/
+			for (std::size_t i = 0u; i < m_faces.size(); ++i) {
+				m_faces[i] = face(m_center);
+			}
+		};
+	private:
+		/*
 		* Quantities necessaries for creation
 		*/
 		point m_center{};
@@ -537,14 +606,17 @@ namespace geometry {
 	using box2D = box<2>;
 	using box3D = box<3>;
 
-	class circle : public shape {
+	template<std::size_t Dim> requires GeometricDimension<Dim>
+	class sphere : public bounding_volume {
+		using point = tsg::vector<scalar, Dim>;
+		using vector = tsg::vector<scalar, Dim>;
 	public:
-		circle(const scalar x = 0.0f, const scalar y = 0.0f, const scalar r = 0.0f) : m_center({ x, y }), m_radius(r) {}
+		sphere(const point c = point(), const scalar r = 0.0f) :
+			bounding_volume(type::sphere), m_center(c), m_radius(r) {}
 	public:
-		void translate(const vector2D&) {};
-		void rotate(const scalar) {};
+		void translate(const vector&) { assert(0); };
 	private:
-		point2D m_center;
+		point m_center;
 		scalar m_radius;
 	};
 
@@ -608,10 +680,15 @@ namespace geometry {
 
 	};
 
-	class TSG_API obb_contact {
+	template <std::size_t Dim> requires GeometricDimension<Dim>
+	class obb_contact {
+		using point = tsg::vector<scalar, Dim>;
+		using vector = tsg::vector<scalar, Dim>;
+		using box = box<Dim>;
 	public:
 		enum class TYPE {
-			VERTEX_FACE,
+			VERTEX_FACE, 
+			VERTEX_EDGE,
 			EDGE_EDGE,
 			UNKNOW
 		};
@@ -620,28 +697,187 @@ namespace geometry {
 		public:
 			contact() = default;
 			~contact() = default;
-			contact(const point3D& pt, const vector3D& vec, const scalar pen, const TYPE type = TYPE::UNKNOW) :
+			contact(const point& pt, const vector& vec, const scalar pen, const TYPE type = TYPE::UNKNOW) :
 				m_point(pt), m_normal(vec), m_penetration(pen), m_type(type) {}
 		public:
-			point3D get_point() const { return m_point; }
-			vector3D get_normal() const { return m_normal; }
+			point get_point() const { return m_point; }
+			vector get_normal() const { return m_normal; }
 		private:
-			point3D m_point{};
-			vector3D m_normal{};
+			point m_point{};
+			vector m_normal{};
 			scalar m_penetration{};
 			TYPE m_type{ TYPE::UNKNOW };
 		};
 	public:
-		obb_contact(geometry::box3D& obb1, geometry::box3D& obb2) : m_obb1(obb1), m_obb2(obb2) {}
-		std::expected<contact, bool> get_contact();
-		void compute();
+		obb_contact(box& obb1, box& obb2) : m_obb1(obb1), m_obb2(obb2) {}
+		std::expected<contact, bool> get_contact() {
+			if (m_contacts.size() > 0) {
+				return *m_contacts.begin();
+			}
+			else {
+				return std::unexpected(false);
+			}
+		}
+		void compute() {
+			if constexpr (Dim == 2) {
+				vertex_edge();
+				//assert(m_contacts.size() > 0u);
+				/* compute best contact based on the greater penetration */
+				std::sort(m_contacts.begin(), m_contacts.end(), [](const contact& c1, const contact& c2) { return c1.m_penetration > c2.m_penetration; });
+#if _DEBUG
+				tsg::logger::get_instance().write("Number of contacts: {}", m_contacts.size());
+				for (auto it = m_contacts.begin(); it != m_contacts.end(); ++it) {
+					tsg::logger::get_instance().write(
+						tsg::string("contact type {} ", (it->m_type == TYPE::VERTEX_EDGE) ? "VERTEX_EDGE" : "UNKNOWN") +
+						tsg::string("contact pen  {} ", it->m_penetration) +
+						tsg::string("normal ({},{}) ", it->m_normal.get<AXES::X>(), it->m_normal.get<AXES::Y>()) +
+						tsg::string("point  ({},{}) ", it->m_point.get<AXES::X>(), it->m_point.get<AXES::Y>())
+					);
+				}
+#endif
+			}
+			else if constexpr (Dim == 3) {
+				vertex_face();
+				edge_edge();
+				/* here MUST be at least one contact */
+				assert(m_contacts.size() > 0u);
+				/* compute best contact based on the greater penetration */
+				std::sort(m_contacts.begin(), m_contacts.end(), [](const contact& c1, const contact& c2) { return c1.m_penetration > c2.m_penetration; });
+#if _DEBUG
+
+				tsg::logger::get_instance().write("Number of contacts: {}", m_contacts.size());
+				for (auto it = m_contacts.begin(); it != m_contacts.end(); ++it) {
+					tsg::logger::get_instance().write(
+						tsg::string("contact type {}", (it->m_type == TYPE::EDGE_EDGE) ? "EDGE_EDGE" : ((it->m_type == TYPE::VERTEX_FACE) ? "VERTEX_FACE" : "UNKNOWN")) +
+						tsg::string("contact pen  {}", it->m_penetration) +
+						tsg::string("normal ({},{},{})", it->m_normal.get<AXES::X>(), it->m_normal.get<AXES::Y>(), it->m_normal.get<AXES::Z>()) +
+						tsg::string("point  ({},{},{})", it->m_point.get<AXES::X>(), it->m_point.get<AXES::Y>(), it->m_point.get<AXES::Z>())
+					);
+				}
+#endif
+			}
+			else {
+				assert(0);
+			}
+		}
 	private:
-		void vertex_face();
-		void edge_edge();
+		void vertex_face() {
+			if constexpr (Dim == 2) {
+				assert(0);
+			}
+			else if constexpr (Dim == 3) {
+				/*
+				* Verteces agains faces
+				*/
+				auto vertex_against_face = [](box3D::vertexes v, box3D::faces f, std::vector<contact>& contacts, bool swap) {
+					for (auto vertex_it = v.begin(); vertex_it != v.end(); ++vertex_it) {
+						for (auto face_it = f.begin(); face_it != f.end(); ++face_it) {
+							/* check if the vertex is penetrating the face */
+							if (scalar distance = geometry::distance(*vertex_it, *face_it) < scalar(0)) {
+								point3D projected_vertex = face_it->project(*vertex_it);
+								if (face_it->contain(projected_vertex)) {
+									contacts.emplace_back(projected_vertex, swap ? face_it->get_normal() * scalar(-1) : face_it->get_normal(), geometry::abs(distance), TYPE::VERTEX_FACE);
+								}
+							}
+
+						}
+					}
+				};
+				/* checking obb1 vertexes against obb2 faces */
+				vertex_against_face(m_obb1.get_vertexes(), m_obb2.get_faces(), m_contacts, false);
+				/* checking obb2 vertexes against obb1 faces */
+				vertex_against_face(m_obb2.get_vertexes(), m_obb1.get_faces(), m_contacts, true);
+			}
+			else {
+				assert(0);
+			}
+		}
+		void vertex_edge() {
+			if constexpr (Dim == 2) {
+				/*
+				* 
+				*/
+				auto vertex_against_edge = [](box::vertexes v, box::edges e, std::vector<contact>& contacts, bool swap) {
+					for (auto vertex_it = v.begin(); vertex_it != v.end(); ++vertex_it) {
+						for (auto edge_it = e.begin(); edge_it != e.end(); ++edge_it) {
+							/* compute the normal of a 2D vector is straightforward n(v(x,y)) = v(-y,x) */
+							vector normal = { -edge_it->get_direction()[AXES::Y], edge_it->get_direction()[AXES::X] };
+							vector vertex_start = *vertex_it - edge_it->get_start();
+							scalar distance = vector::dot(normal, vertex_start);
+							if (distance < 0) {
+								vector edge_dir = edge_it->get_direction();
+								scalar projection = vector::dot(edge_dir, vertex_start);
+								scalar edge_len = edge_it->get_lenght();
+								if (projection >= 0u && projection <= edge_len) {
+									contacts.emplace_back(
+										edge_it->get_start() + (edge_dir * projection),
+										swap ? scalar(-1) * normal : normal,
+										geometry::abs(distance), TYPE::VERTEX_EDGE);
+								}
+							}
+						}
+					}
+				};
+				/* checking obb1 vertexes against obb2 edges */
+				vertex_against_edge(m_obb1.get_vertexes(), m_obb2.get_edges(), m_contacts, false);
+				/* checking obb2 vertexes against obb1 edges */
+				vertex_against_edge(m_obb2.get_vertexes(), m_obb1.get_edges(), m_contacts, true);
+			}
+			else if constexpr (Dim == 3) {
+				assert(0);
+			}
+			else {
+				assert(0);
+			}
+		}
+		void edge_edge() {
+			if constexpr (Dim == 2) {
+				assert(0);
+			}
+			else if constexpr (Dim == 3) {
+				box3D::edges edges1 = m_obb1.get_edges();
+				box3D::edges edges2 = m_obb2.get_edges();
+				for (auto edg1_it = edges1.begin(); edg1_it != edges1.end(); ++edg1_it) {
+					for (auto edg2_it = edges2.begin(); edg2_it != edges2.end(); ++edg2_it) {
+						/* Skip computation for almost parallel edges */
+						constexpr scalar parallel_threshold{ 0.95 };
+						if (vector3D::dot(edg1_it->get_direction(), edg2_it->get_direction()) > parallel_threshold) {
+							continue;
+						}
+						else {
+							auto [point_edg1, point_edg2] = edg1_it->closest_to(*edg2_it);
+							scalar d = distance(point_edg1, point_edg2);
+							/* Normal have to points from obb1 to obb2 */
+							if (d < scalar_zero) {
+								vector3D normal = vector3D::cross(edg1_it->get_direction(), edg2_it->get_direction());
+								vector3D center2center = m_obb2.get_center() - m_obb1.get_center();
+								if (vector3D::dot(normal, center2center) < scalar(0)) {
+									normal *= scalar(-1);
+								}
+								scalar penetration{};
+								/* Compute edge-edge penetration */
+								{
+									point3D center_edge1 = edg1_it->get_direction() * edg1_it->get_lenght() * scalar(0.5f);
+									point3D center_edge2 = edg2_it->get_direction() * edg2_it->get_lenght() * scalar(0.5f);
+									if (m_obb1.contains(center_edge2) || m_obb2.contains(center_edge1)) {
+										penetration = (point_edg1 - point_edg2).get_norm();
+									}
+								}
+								if (penetration > scalar(0)) {
+									m_contacts.emplace_back(scalar(0.5) * (point_edg1 + point_edg2), normal, penetration, TYPE::EDGE_EDGE);
+								}
+							}
+						}
+					}
+				}
+			}
+			else {
+				assert(0);
+			}
+		}
 	private:
-		box3D& m_obb1;
-		box3D& m_obb2;
+		box& m_obb1;
+		box& m_obb2;
 		std::vector<contact> m_contacts;
 	};
-
 }

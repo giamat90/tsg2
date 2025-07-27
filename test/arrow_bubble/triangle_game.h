@@ -4,7 +4,7 @@
 #include "arrow.h"
 #include "bubble.h"
 
-#define NUMBER_OF_BUBBLE 1
+#define NUMBER_OF_BUBBLE 2
 
 class triangle_game : public game<2, triangle_game>
 {
@@ -12,7 +12,7 @@ public:
 	triangle_game(const std::string&, const unsigned, const unsigned, const unsigned);
 	~triangle_game();
 public: // override public-methods
-	bool initialize();
+	void initialize();
 	void run_game();
 	void shutdown();
 	void initialize_objects();

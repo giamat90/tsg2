@@ -4,6 +4,7 @@
 #include <tsg/io.h>
 #include "gl_includes.h"
 #include "gl_utility.h"
+#include <cassert>
 
 static void resize_window_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -19,7 +20,7 @@ glfw_window::glfw_window(const std::string& t, const width_t w, const height_t h
 
 	if (!m_adaptee)
 	{
-		throw create_exception();
+		assert(0);
 	}
 	glfwMakeContextCurrent(m_adaptee);
 	glfwSetFramebufferSizeCallback(m_adaptee, resize_window_callback);

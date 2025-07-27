@@ -4,7 +4,6 @@
 #include "geometry.h"
 #include <tsg/types.h>
 
-using geometry::surface;
 using geometry::scalar;
 
 class TSG2_API texture {
@@ -13,19 +12,20 @@ public:
 	using angle = float;
 	using scale = float;
 public:
-	texture(int w = 0, int h = 0, const std::string& asset = "") : m_width(w), m_height(h) { load(asset); };
-	virtual ~texture() { unload(); };
-	virtual void load(const std::string& asset = "") {};
-	virtual void unload() {};
+	texture(int w = 0, int h = 0) : m_width(w), m_height(h) {};
+	virtual ~texture() = default;
 public:
+	virtual void set_active() = 0;
+public:
+	/* set and getters */
 	inline void set_size(int w = 0, int h = 0) { m_width = w; m_height = h; }
 	inline void set_scale(const scale& s) { m_scale = s; }
 	inline void set_where(const position& p) { m_position = p; }
 	inline void set_rotation(const angle a) { m_angle = a; }
-	inline scale get_scale() { return m_scale; }
-	inline position get_where() { return m_position; }
-	inline angle get_rotation() { return m_angle; }
-	inline position get_size() { return m_scale * position({ scalar(m_width), scalar(m_height), scalar(m_depth) }); }
+	inline scale get_scale() const { return m_scale; }
+	inline position get_where() const { return m_position; }
+	inline angle get_rotation() const { return m_angle; }
+	inline position get_size() const { return m_scale * position({ scalar(m_width), scalar(m_height), scalar(m_depth) }); }
 public: // factory-method
 	static texture* create_texture();
 protected:

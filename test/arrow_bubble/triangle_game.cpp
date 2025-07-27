@@ -5,6 +5,8 @@
 
 #include <tsg/logger.h>
 
+#define EXCLUDE_BOUNDING_VOLUME 1
+
 #define EXCLUDE_BUBBLE 0
 #define EXCLUDE_ARROW NUMBER_OF_BUBBLE > 1 ? 1 : 0
 
@@ -20,6 +22,12 @@
 #define INCLUDE_ARROW( code ) code
 #endif
 
+#if EXCLUDE_BOUNDING_VOLUME
+#define INCLUDE_BOUNDING_VOLUME( code ) /* code */
+#else
+#define INCLUDE_BOUNDING_VOLUME( code ) (code)
+#endif
+
 
 triangle_game::triangle_game(const std::string& window_text, const unsigned h, const unsigned w, const unsigned fps) :
 	game(window_text, h, w, fps)
@@ -31,18 +39,10 @@ triangle_game::~triangle_game() {
 	tsg::logger::get_instance().write("triangle dtor");
 }
 
-bool triangle_game::initialize() {
-	bool res{ false };
-	if (init()) {
-		create_physics();
-		initialize_objects();
-		m_state = GAME_STATE::RUNNING;
-		res = true;
-	}
-	else {
-		tsg::logger::get_instance().write("Error initializing externals");
-	}
-	return res;
+void triangle_game::initialize() {
+	create_physics();
+	initialize_objects();
+	m_state = GAME_STATE::RUNNING;
 }
 
 void triangle_game::run_game() {
@@ -67,17 +67,20 @@ void triangle_game::create_physics() {
 void triangle_game::initialize_objects() {
 	/* ToDo */
 	// input engine stuff
-	INCLUDE_ARROW(add_playable(&m_arrow);)
+	INCLUDE_ARROW(add_playable(&m_arrow));
 	// physic engine stuff
-	INCLUDE_ARROW(add_physical_object(&m_arrow);)
+	INCLUDE_ARROW(add_physical_object(&m_arrow));
 	// render engine stuff
 	/* initialize objects */
-	INCLUDE_ARROW(add_drawable(&m_arrow);)
-	INCLUDE_ARROW(m_arrow.init();)
+	INCLUDE_BOUNDING_VOLUME(m_arrow.print_bounding_volume(true));
+	INCLUDE_ARROW(add_drawable(&m_arrow));
+	INCLUDE_ARROW(m_arrow.init());
 	for (std::size_t i = 0u; i < NUMBER_OF_BUBBLE; ++i) {
 		INCLUDE_BUBBLE(add_physical_object(&m_bubbles[i]));
-		INCLUDE_BUBBLE(add_drawable(&m_bubbles[i]);)
-		INCLUDE_BUBBLE(m_bubbles[i].init();)
+		INCLUDE_BOUNDING_VOLUME(m_bubbles[i].print_bounding_volume(true));
+		INCLUDE_BUBBLE(add_drawable(&m_bubbles[i]));
+		INCLUDE_BUBBLE(m_bubbles[i].init());
+		INCLUDE_BOUNDING_VOLUME(add_bounding_volume( m_bubbles[i].get_bounding_volume(), m_bubbles[i].get_sprite()->get_scale()));
 	}
 }
 
@@ -95,5 +98,4 @@ void triangle_game::update_game() {
 
 void triangle_game::generate_output() {
 	m_renderer.render();
-	//m_renderer.draw(m_arrow.get_box());
 }

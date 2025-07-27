@@ -2,7 +2,6 @@
 
 #include "tsg2.h"
 #include "input_object.h"
-#include "input_engine.h"
 #include <vector>
 
 enum class INPUT_TYPE {
@@ -59,10 +58,22 @@ enum class INPUT_MOUSE {
 	RIGHT
 };
 
-template <typename WindowImpl, typename InputImpl>
-class input {
+class input_engine {
 public:
-	input(WindowImpl * w) : m_window(w) {};
+	input_engine() = default;
+	virtual ~input_engine() = default;
+public:
+	virtual bool is_key_pressed(const INPUT_KEY key) = 0;
+	// mouse
+	virtual bool is_mouse_clicked(const INPUT_MOUSE side) = 0;
+	virtual bool is_mouse_pressed(const INPUT_MOUSE side) = 0;
+	virtual bool is_mouse_released(const INPUT_MOUSE side) = 0;
+};
+
+template <typename WindowImpl, typename InputImpl>
+class input : public input_engine {
+public:
+	input(WindowImpl * w) : input_engine(), m_window(w) {};
 	virtual ~input() = default;
 public:
 	void process_input() {
@@ -73,11 +84,11 @@ public:
 public:
 	// kind of inputs events
 	// keyboard
-	bool is_key_pressed(const INPUT_KEY key) { return static_cast<InputImpl*>(this)->is_key_pressed(key); };
+	bool is_key_pressed(const INPUT_KEY key) override { return static_cast<InputImpl*>(this)->is_key_pressed(key); };
 	// mouse
-	bool is_mouse_clicked(const INPUT_MOUSE side) { return static_cast<InputImpl*>(this)->is_mouse_clicked(side); };
-	bool is_mouse_pressed(const INPUT_MOUSE side) { return static_cast<InputImpl*>(this)->is_mouse_pressed(side); };
-	bool is_mouse_released(const INPUT_MOUSE side) { return static_cast<InputImpl*>(this)->is_mouse_released(side); };
+	bool is_mouse_clicked(const INPUT_MOUSE side) override { return static_cast<InputImpl*>(this)->is_mouse_clicked(side); };
+	bool is_mouse_pressed(const INPUT_MOUSE side) override { return static_cast<InputImpl*>(this)->is_mouse_pressed(side); };
+	bool is_mouse_released(const INPUT_MOUSE side) override { return static_cast<InputImpl*>(this)->is_mouse_released(side); };
 	// gamepad
 	/* TODO */
 	// joystick

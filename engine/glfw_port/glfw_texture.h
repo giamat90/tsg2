@@ -6,13 +6,13 @@
 #include "../asset.h"
 #include "gl_includes.h"
 
-class TSG2_API glfw_texture : public texture, public tsg::adapter_v<GLuint>
+class TSG2_API glfw_texture : public virtual texture, public tsg::adapter_v<GLuint>
 {
 public:
-	glfw_texture(int width = 0, int height = 0, const std::string& asset = "");
+	glfw_texture(int width = 0, int height = 0);
 	virtual ~glfw_texture();
-	void load(const std::string& asset = "") override;
-	void unload() override;
+public:
+	void set_active() override;
 protected:
 };
 

@@ -11,6 +11,7 @@ using geometry::AXES;
 using geometry::scalar;
 using geometry::quaternion;
 using geometry::matrix3D;
+using geometry::bounding_volume;
 
 template <std::size_t Dim> requires geometry::GeometricDimension<Dim>
 class physics {
@@ -44,6 +45,7 @@ public:
 						scalar seperataing_velocity{ vector::dot((obj->m_velocity), normal) };
 						vector impulse{ (-2 * seperataing_velocity / obj->m_inverse_mass) * normal };
 						obj->m_velocity += obj->m_inverse_mass * impulse;
+						obj->update(scalar(0));
 						};
 					// compute if the new position is inside the world, else translate it
 					if (obj->m_box.get_max(AXES::X) > m_limits.get_max(AXES::X)) {
@@ -110,14 +112,71 @@ public:
 					}
 				}
 			}
-			else if constexpr (Dim == 2) {
-				/* TODO */
-				assert(0);
-				//static_assert(false);
+			else if constexpr (Dim == 2) {				/* Sorting objects x-based */
+				std::sort(m_objects.begin(), m_objects.end(), [](physical_object* a, physical_object* b)
+					{
+						return a->get_box().get_min(geometry::X) < b->get_box().get_min(geometry::X);
+					}
+				);
+				/* First check if there is contact with world walls */
+				for (auto it = m_objects.begin(); it != m_objects.end(); ++it) {
+					auto obj = *it;
+					auto wall_contact = [&](const vector& normal) {
+						scalar seperataing_velocity{ vector::dot((obj->m_velocity), normal) };
+						vector impulse{ (-2 * seperataing_velocity / obj->m_inverse_mass) * normal };
+						obj->m_velocity += obj->m_inverse_mass * impulse;
+						obj->update(scalar(0));
+					};
+					// compute if the new position is inside the world, else translate it
+					if (obj->m_box.get_max(AXES::X) > m_limits.get_max(AXES::X)) {
+						if (!obj->m_velocity.is_zero()) {
+							scalar dx = obj->get_box().get_max(AXES::X) - m_limits.get_max(AXES::X);
+							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
+							obj->translate({ -dx, -dy});
+						}
+						wall_contact({ scalar(-1), scalar(0)});
+					}
+					if (obj->m_box.get_max(AXES::Y) > m_limits.get_max(AXES::Y)) {
+						if (!obj->m_velocity.is_zero()) {
+							scalar dy = obj->get_box().get_max(AXES::Y) - m_limits.get_max(AXES::Y);
+							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
+							obj->translate({ -dx, -dy});
+						}
+						wall_contact({ scalar(0), scalar(-1)});
+					}
+					//
+					if (obj->m_box.get_min(AXES::X) < m_limits.get_min(AXES::X)) {
+						if (!obj->m_velocity.is_zero()) {
+							scalar dx = obj->get_box().get_min(AXES::X) - m_limits.get_min(AXES::X);
+							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
+							obj->translate({ -dx, -dy});
+						}
+						wall_contact({ scalar(1), scalar(0)});
+					}
+					if (obj->m_box.get_min(AXES::Y) < m_limits.get_min(AXES::Y)) {
+						if (!obj->m_velocity.is_zero()) {
+							scalar dy = obj->get_box().get_min(AXES::Y) - m_limits.get_min(AXES::Y);
+							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
+							obj->translate({ -dx, -dy});
+						}
+						wall_contact({ scalar(0), scalar(1)});
+					}
+					/* Search contacts with next objects */
+					auto next_it = std::next(it);
+					while (next_it != m_objects.end()) {
+						auto next_obj = *next_it;
+						if (contact(obj->get_box(), next_obj->get_box())) {
+							resolve_contact(obj, next_obj);
+							++next_it;
+						}
+						else {
+							next_it = m_objects.end();
+						}
+					}
+				}
 			}
 			else {
 				assert(0);
-				//static_assert(false);
 			}
 		};
 		vector get_scale() { return m_scale; }
@@ -268,17 +327,36 @@ public:
 				}
 			}
 			else if constexpr (Dim == 2) {
-				static_assert(false);
+				auto is_separating_axis = [](const vector& axis, const box& a, const box& b) -> scalar {
+					auto project_box_into_axes = [](const box& b, const vector& axis) -> std::pair<scalar, scalar> {
+						scalar center_proj = vector::dot(b.get_center(), axis);
+						scalar radius =
+							geometry::abs(b.get_size<AXES::X>() * vector::dot(b.get_axes().get_row<AXES::X>(), axis)) +
+							geometry::abs(b.get_size<AXES::Y>() * vector::dot(b.get_axes().get_row<AXES::Y>(), axis));
+						return { center_proj - radius, center_proj + radius };
+					};
+					auto [min_a, max_a] = project_box_into_axes(a, axis);
+					auto [min_b, max_b] = project_box_into_axes(b, axis);
+					return (max_a < min_b - geometry::scalar_zero) || (max_b < min_a - geometry::scalar_zero);
+				};
+
+				for (size_t i{}; i < 2u; ++i) {
+					if (is_separating_axis(a.get_axes().get_row(i), a, b) || is_separating_axis(b.get_axes().get_row(i), a, b)) {
+						return false;
+					}
+				}
+				/* no separating axes found, then there is a collision */
+				return true;
 			}
 			else {
-				static_assert(false);
+				assert(0);
 			}
 		};
 		void resolve_contact(physics::physical_object * const a, physics::physical_object * const b) {
 			/*
 			* Compute contact data
 			*/
-			geometry::obb_contact resolver(a->get_box(), b->get_box());
+			geometry::obb_contact<Dim> resolver(a->get_box(), b->get_box());
 			resolver.compute();
 			if (auto res = resolver.get_contact()) {
 				auto contact = res.value();
@@ -302,19 +380,17 @@ public:
 				//}
 				//geometry::point3D point = a->get_box().get_max_point<AXES::X>();
 				//geometry::vector3D normal = (a->get_box().get_center() - b->get_box().get_center()).get_normalized();
-				point point = contact.get_normal();
-				vector normal = contact.get_point();
+				point point = contact.get_point();
+				vector normal = contact.get_normal();
 				scalar seperataing_velocity{ vector::dot((a->m_velocity - b->m_velocity), normal) };
 				scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
 				vector impulse{ (-2 * seperataing_velocity / total_inverse_mass) * normal };
 				a->m_velocity += a->m_inverse_mass * impulse;
 				b->m_velocity -= b->m_inverse_mass * impulse;
+				a->update(scalar(0));
+				b->update(scalar(0));
 #endif
 			}
-			else {
-				return;
-			}
-
 		};
 	protected:
 		std::vector<physical_object*> m_objects;
@@ -330,11 +406,22 @@ public:
 		void set_physical_world(physical_world* const world) { m_world = world; }
 	public:
 		// updateable method overrides
-		void update(const scalar delta_time) {
-			tsg::logger::get_instance().write("{}: p=({},{},{}), v=({},{},{}), a=({},{},{})", this,
-				m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z],
-				m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y], m_velocity[geometry::AXES::Z],
-				m_acceleration[geometry::AXES::X], m_acceleration[geometry::AXES::Y], m_acceleration[geometry::AXES::Z]);
+		virtual void update(const scalar delta_time) {
+			if constexpr (Dim == 2) {
+				tsg::logger::get_instance().write("{}: p=({},{}), v=({},{}), a=({},{})", this,
+					m_position[geometry::AXES::X], m_position[geometry::AXES::Y],
+					m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y],
+					m_acceleration[geometry::AXES::X], m_acceleration[geometry::AXES::Y]);
+			}
+			else if constexpr (Dim == 3) {
+				tsg::logger::get_instance().write("{}: p=({},{},{}), v=({},{},{}), a=({},{},{})", this,
+					m_position[geometry::AXES::X], m_position[geometry::AXES::Y], m_position[geometry::AXES::Z],
+					m_velocity[geometry::AXES::X], m_velocity[geometry::AXES::Y], m_velocity[geometry::AXES::Z],
+					m_acceleration[geometry::AXES::X], m_acceleration[geometry::AXES::Y], m_acceleration[geometry::AXES::Z]);
+			}
+			else {
+				assert(0);
+			}
 			/*
 			* Consume the acceleration due to forces
 			*/
@@ -351,7 +438,7 @@ public:
 			/*
 			* Update orientation and rotation
 			*/
-#if 0
+#if TODO
 			quaternion delta_orientation{ 0, m_angular_velocity[AXES::X] * scalar(0.5), m_angular_velocity[AXES::Y] * scalar(0.5), m_angular_velocity[AXES::Z] * scalar(0.5) };
 			m_orientation += delta_orientation * m_orientation;
 			m_angular_velocity += m_angular_acceleration * delta_time;
@@ -359,9 +446,9 @@ public:
 			/*
 			* Check if something goes very wrong
 			*/
-			if (std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X]) || std::isnan(m_position[AXES::X])) {
+			if (m_position.is_nan()) {
 				tsg::logger::get_instance().write("Exception in {}: physical object computation fails to get a number.", __FILE__);
-				throw;
+				assert(0);
 			}
 		};
 	public:
@@ -373,9 +460,30 @@ public:
 			m_box.rotate(angle);
 		}
 	public:
-		void set_box(const point& center, const vector& half_sizes) {
-			m_box = box(center, half_sizes);
+		/* TODO: change name in set_bounding_volume it is more generic and correct and it should
+		* accept boxes, spheres as minimun and other more complicated volumes also.
+		*/
+		void set_bounding_volume(bounding_volume& bv) {
+			switch (bv.get_type()) {
+			case bounding_volume::type::box:
+			{
+				vector half_sizes = static_cast<box&>(bv).get_half_sizes();
+				half_sizes.scale(m_world->get_scale());
+				m_box = box(static_cast<box&>(bv).get_center(), half_sizes);
+			}
+			break;
+			case bounding_volume::type::sphere:
+			{
+				/* TODO */
+				assert(0);
+			}
+			break;
+			default:
+				assert(0);
+				break;	
+			}
 		};
+		bounding_volume * const get_bounding_volume() { return &m_box; }
 		box& get_box() { return m_box; }
 		void set_mass(const scalar m) {
 			if (m > scalar(0)) {
@@ -434,11 +542,20 @@ public:
 			m_world->m_scale = res.value() * scalar(2.0f) * scale;
 		}
 		else {
-			assert(false);
+			assert(0);
 		}
 		/* setting world limits */
 		m_world->m_limits.set_center(vector(scalar(0)));
-		m_world->m_limits.set_half_sizes(vector(scale * scalar(0.5)));
+		m_world->m_limits.set_half_sizes(vector(scale));
+#if _DEBUG
+		tsg::logger::get_instance().write("World limits: ({},{},{},{}) with scale ({},{})", 
+			m_world->m_limits.get_center()[AXES::X] - m_world->m_limits.get_sizes()[AXES::X],
+			m_world->m_limits.get_center()[AXES::X] + m_world->m_limits.get_sizes()[AXES::X],
+			m_world->m_limits.get_center()[AXES::Y] + m_world->m_limits.get_sizes()[AXES::Y],
+			m_world->m_limits.get_center()[AXES::Y] - m_world->m_limits.get_sizes()[AXES::Y],
+			m_world->m_scale[AXES::X],
+			m_world->m_scale[AXES::Y]);
+#endif
 	}
 public:
 	inline void update(const float delta_time) {

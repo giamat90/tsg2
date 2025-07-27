@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../tsg2.h"
-#include "geometry.h"
+#include "../geometry.h"
 #include "color.h"
 #if 0
 class TSG2_API glfw_converter {

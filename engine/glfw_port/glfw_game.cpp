@@ -3,6 +3,14 @@
 #include "glfw_game.h"
 #include "gl_includes.h"
 
+glfw_game::glfw_game() {
+	init();
+}
+
+glfw_game::~glfw_game() {
+	quit();
+}
+
 bool glfw_game::init() {
 	// Initialize GL and GLFW
 	bool res{ true };

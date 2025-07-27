@@ -1,8 +1,6 @@
 #pragma once
 
 #include "tsg2.h"
-//#include "window.h"
-//#include "renderer.h"
 #include "input.h"
 #include "input_object.h"
 #include "game_timer.h"
@@ -29,6 +27,7 @@ template <size_t Dim, typename GameImpl, typename GraphicImpl = glfw_game>
 #elifdef VULKAN_GAME
 /* TODO */
 #elifdef GLES_GAME
+/* TODO */
 #endif
 class game : public tsg::non_copyable, public GraphicImpl
 {
@@ -42,13 +41,11 @@ public:
 		SHUT_DOWN
 	};
 	game(const std::string& txt, const unsigned h, const unsigned w, const unsigned fps) : 
-		m_window(txt, h, w), m_renderer(&m_window), m_input(&m_window), m_event(&m_window), m_timer(fps), m_physics() {
+		GraphicImpl(), m_window(txt, h, w), m_renderer(&m_window), m_input(&m_window), m_event(&m_window), m_timer(fps), m_physics() {
 		
 	};
-	~game() {
-		quit(); // quit libraries
-	}
-	bool initialize() { static_cast<GameImpl*>(this)->initialize(); };
+	virtual ~game() {}
+	void initialize() { static_cast<GameImpl*>(this)->initialize(); };
 	void run_game() { static_cast<GameImpl*>(this)->run_game(); };
 	void shutdown() { static_cast<GameImpl*>(this)->shutdown(); };
 public:
@@ -65,14 +62,10 @@ protected: // virtual methods
 	/* initialize objects */
 	void initialize_objects() { static_cast<GameImpl*>(this)->initialize_objects(); };
 protected:
-	/* Methods for initialize graphic engine */
-	bool init() { return static_cast<GraphicImpl*>(this)->init(); };
-	void quit() { static_cast<GraphicImpl*>(this)->quit(); };
-protected:
 	void set_fps(const unsigned fps) { m_timer.set_fps(fps); }
-
 public:
-	inline void add_drawable(drawable* d) { m_renderer.add_drawable(d); };
+	inline void add_drawable(drawable* obj) { m_renderer.add_drawable(obj); };
+	inline void add_bounding_volume(geometry::bounding_volume* bv, const scalar scale) { m_renderer.add_bounding_volume(bv, scale); };
 	inline void add_playable(playable_object* o) { m_input.add_playable(o); };
 	inline void add_physical_object(physics::physical_object* o) { m_physics.add_physical_object(o); }
 protected: // attributes
