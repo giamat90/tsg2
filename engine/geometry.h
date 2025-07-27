@@ -720,8 +720,10 @@ namespace geometry {
 		}
 		void compute() {
 			if constexpr (Dim == 2) {
+#if 1
 				vertex_edge();
-				//assert(m_contacts.size() > 0u);
+				/* here MUST be at least one contact */
+				assert(m_contacts.size() > 0u);
 				/* compute best contact based on the greater penetration */
 				std::sort(m_contacts.begin(), m_contacts.end(), [](const contact& c1, const contact& c2) { return c1.m_penetration > c2.m_penetration; });
 #if _DEBUG
@@ -734,6 +736,7 @@ namespace geometry {
 						tsg::string("point  ({},{}) ", it->m_point.get<AXES::X>(), it->m_point.get<AXES::Y>())
 					);
 				}
+#endif
 #endif
 			}
 			else if constexpr (Dim == 3) {

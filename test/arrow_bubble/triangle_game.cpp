@@ -5,7 +5,7 @@
 
 #include <tsg/logger.h>
 
-#define EXCLUDE_BOUNDING_VOLUME 1
+#define EXCLUDE_BOUNDING_VOLUME 0
 
 #define EXCLUDE_BUBBLE 0
 #define EXCLUDE_ARROW NUMBER_OF_BUBBLE > 1 ? 1 : 0
@@ -80,7 +80,7 @@ void triangle_game::initialize_objects() {
 		INCLUDE_BOUNDING_VOLUME(m_bubbles[i].print_bounding_volume(true));
 		INCLUDE_BUBBLE(add_drawable(&m_bubbles[i]));
 		INCLUDE_BUBBLE(m_bubbles[i].init());
-		INCLUDE_BOUNDING_VOLUME(add_bounding_volume( m_bubbles[i].get_bounding_volume(), m_bubbles[i].get_sprite()->get_scale()));
+		INCLUDE_BOUNDING_VOLUME(add_bounding_volume( m_bubbles[i].get_bounding_volume(),m_bubbles[i].get_sprite()->get_scale()));
 	}
 }
 

@@ -16,7 +16,7 @@ void bubble::init() {
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<scalar> dis(-1.0, 1.0);
-	auto b = geometry::box2D({ dis(gen), dis(gen) }, { w / scalar(2), h / scalar(2) });
+	auto b = geometry::box2D({ dis(gen), dis(gen) }, { scalar(w) / scalar(2), scalar(h) / scalar(2) });
 	set_bounding_volume(b);
 	tsg::logger::get_instance().write("Bubble start at ({},{})",
 		m_box.get_center().get<geometry::AXES::X>(),

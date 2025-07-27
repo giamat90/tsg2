@@ -65,6 +65,18 @@ void glfw_renderer::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_check_error(__FILE__, __LINE__);
 
+	/* drawing bounding volumes */
+	if (m_bv_obj.size() > 0) {
+		// use programs previously loaded
+		m_texture_shader.use();
+		// use vertexes previously loaded
+		m_texture_vertex.use();
+		for (auto& bv : m_bv_obj) {
+			bv->update();
+			draw(bv->get_texture());
+			//draw(bv->get_bounding_volume());
+		}
+	}
 	/* draw textures */
 	if (m_textures_obj.size() > 0) {
 		// use programs previously loaded
@@ -97,19 +109,6 @@ void glfw_renderer::render() {
 			this->draw(m->get_mesh());
 		}
 	}
-	/* drawing bounding volumes */
-	if(m_bv_obj.size() > 0) {
-		// use programs previously loaded
-		m_texture_shader.use();
-		// use vertexes previously loaded
-		m_texture_vertex.use();
-		for (auto& bv : m_bv_obj) {
-			bv->update();
-			draw(bv->get_texture());
-			//draw(bv->get_bounding_volume());
-		}
-	}
-
 	/* Swap front and back buffers */
 	glfwSwapBuffers(m_window->get_adaptee());
 	gl_check_error(__FILE__, __LINE__);

@@ -113,7 +113,7 @@ public:
 				}
 			}
 			else if constexpr (Dim == 2) {				/* Sorting objects x-based */
-				std::sort(m_objects.begin(), m_objects.end(), [](physical_object* a, physical_object* b)
+				std::sort(m_objects.begin(), m_objects.end(), [](physical_object* a, physical_object* b) 
 					{
 						return a->get_box().get_min(geometry::X) < b->get_box().get_min(geometry::X);
 					}
@@ -327,6 +327,13 @@ public:
 				}
 			}
 			else if constexpr (Dim == 2) {
+				if ((a.get_max(AXES::X) >= b.get_min(AXES::X) && (b.get_max(AXES::Y) >= a.get_min(AXES::Y) || a.get_min(AXES::Y) <= b.get_max(AXES::Y)))) {
+					return true;
+				}
+				else {
+					return false;
+				}
+#if 0
 				auto is_separating_axis = [](const vector& axis, const box& a, const box& b) -> scalar {
 					auto project_box_into_axes = [](const box& b, const vector& axis) -> std::pair<scalar, scalar> {
 						scalar center_proj = vector::dot(b.get_center(), axis);
@@ -347,6 +354,7 @@ public:
 				}
 				/* no separating axes found, then there is a collision */
 				return true;
+#endif
 			}
 			else {
 				assert(0);
@@ -366,20 +374,18 @@ public:
 				* then to compute the point of contact I should translate the object of dx.
 				*/
 #if 1
-				//if (!a->m_velocity.is_zero()) {
-				//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-				//	scalar dy{ dx * a->m_velocity.get<AXES::Y>() / a->m_velocity.get<AXES::X>() };
-				//	scalar dz{ dx * a->m_velocity.get<AXES::Z>() / a->m_velocity.get<AXES::X>() };
-				//	a->translate({ -dx, -dy, -dz });
-				//}
-				//else if (!b->m_velocity.is_zero()) {
-				//	scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-				//	scalar dy{ dx * b->m_velocity.get<AXES::Y>() / b->m_velocity.get<AXES::X>() };
-				//	scalar dz{ dx * b->m_velocity.get<AXES::Z>() / b->m_velocity.get<AXES::X>() };
-				//	b->translate({ -dx, -dy, -dz });
-				//}
-				//geometry::point3D point = a->get_box().get_max_point<AXES::X>();
-				//geometry::vector3D normal = (a->get_box().get_center() - b->get_box().get_center()).get_normalized();
+				if (!a->m_velocity.is_zero()) {
+					scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
+					scalar dy{ dx * a->m_velocity.get<AXES::Y>() / a->m_velocity.get<AXES::X>() };
+					//a->translate({ -dx, -dy });
+				}
+				else if (!b->m_velocity.is_zero()) {
+					scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
+					scalar dy{ dx * b->m_velocity.get<AXES::Y>() / b->m_velocity.get<AXES::X>() };
+					//b->translate({ -dx, -dy });
+				}
+				point contact_point = a->get_box().get_max_point<AXES::X>();
+				vector naive_normal = (a->get_box().get_center() - b->get_box().get_center()).get_normalized();
 				point point = contact.get_point();
 				vector normal = contact.get_normal();
 				scalar seperataing_velocity{ vector::dot((a->m_velocity - b->m_velocity), normal) };
