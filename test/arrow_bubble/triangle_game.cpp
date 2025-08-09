@@ -5,7 +5,7 @@
 
 #include <tsg/logger.h>
 
-#define EXCLUDE_BOUNDING_VOLUME 0
+#define EXCLUDE_BOUNDING_VOLUME 1
 
 #define EXCLUDE_BUBBLE 0
 #define EXCLUDE_ARROW NUMBER_OF_BUBBLE > 1 ? 1 : 0

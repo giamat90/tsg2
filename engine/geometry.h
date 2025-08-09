@@ -637,6 +637,14 @@ namespace geometry {
 		assert(0);
 		return scalar(0);
 	}
+	/* compute normal of a 2D segment */
+	inline vector2D compute_normal(const segment<2>& s) {
+		vector2D v = s.get_direction();
+		if (v.get_norm() < scalar_zero) {
+			assert(0); // zero length segment
+		}
+		return vector2D({ -v.get<AXES::Y>(), v.get<AXES::X>() }).get_normalized();
+	}
 
 	class surface : public shape {
 	public:
@@ -702,15 +710,21 @@ namespace geometry {
 		public:
 			point get_point() const { return m_point; }
 			vector get_normal() const { return m_normal; }
+			vector get_penetration_vector() const { return m_penetration_vector; }
+		public:
+			bool operator==(const contact& other) const {
+				return (m_point == other.m_point) && (m_normal == other.m_normal) && (m_penetration == other.m_penetration) && (m_type == other.m_type);
+			}
 		private:
 			point m_point{};
 			vector m_normal{};
 			scalar m_penetration{};
+			vector m_penetration_vector{};
 			TYPE m_type{ TYPE::UNKNOW };
 		};
 	public:
 		obb_contact(box& obb1, box& obb2) : m_obb1(obb1), m_obb2(obb2) {}
-		std::expected<contact, bool> get_contact() {
+		std::expected<contact, bool> get_best_contact() {
 			if (m_contacts.size() > 0) {
 				return *m_contacts.begin();
 			}
@@ -718,9 +732,54 @@ namespace geometry {
 				return std::unexpected(false);
 			}
 		}
+		std::expected<contact, bool> get_next_contact(const contact& c) {
+			auto it = std::find(m_contacts.begin(), m_contacts.end(), c);
+			if(it == m_contacts.end()) {
+				assert(0); // contact not found
+			}
+			else {
+				auto ret = std::next(it);
+				if (ret != m_contacts.end()) {
+					return *ret;
+				}
+				else {
+					return std::unexpected(false); // no more contacts
+				}
+			}
+		}
 		void compute() {
 			if constexpr (Dim == 2) {
 #if 1
+				/* valid for AABB bounding volumes */
+				scalar penetration_x = std::min(
+					m_obb1.get_max(AXES::X) - m_obb2.get_min(AXES::X),
+					m_obb2.get_max(AXES::X) - m_obb1.get_min(AXES::X)
+				);
+				scalar penetration_y = std::min(
+					m_obb1.get_max(AXES::Y) - m_obb2.get_min(AXES::Y),
+					m_obb2.get_max(AXES::Y) - m_obb1.get_min(AXES::Y)
+				);
+				contact c;
+				/* Choose the minimum axes penetration */
+				if (penetration_x < penetration_y) {
+					/* X axes */
+					c.m_penetration = penetration_x;
+					c.m_normal = m_obb1.get_center()[AXES::X] < m_obb2.get_center()[AXES::X] ? 
+						vector({ scalar(-1), scalar(0)}) : vector({scalar(1), scalar(0)});
+					c.m_penetration_vector = vector({ c.m_normal[AXES::X] * c.m_penetration, scalar(0) });
+				}
+				else {
+					/* Y axes */
+					c.m_penetration = penetration_y;
+					c.m_normal = m_obb1.get_center()[AXES::Y] < m_obb2.get_center()[AXES::Y] ?
+						vector({ scalar(0), scalar(-1) }) : vector({ scalar(0), scalar(1) });
+					c.m_penetration_vector = vector({ c.m_normal[AXES::Y] * c.m_penetration, scalar(0) });
+
+				}
+				c.m_point = (m_obb1.get_center() + m_obb2.get_center())* scalar(0.5);
+				m_contacts.emplace_back(c);
+#endif
+#if 0
 				vertex_edge();
 				/* here MUST be at least one contact */
 				assert(m_contacts.size() > 0u);
