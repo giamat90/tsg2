@@ -411,13 +411,13 @@ namespace geometry {
 			m_direction(other.m_direction),
 			m_base(other.m_base)
 		{
-			for (std::size_t i = 0u; i < 8; ++i) {
+			for (std::size_t i = 0u; i < m_vertexes.size(); ++i) {
 				m_vertexes[i] = other.m_vertexes[i];
 			}
-			for (std::size_t i = 0u; i < 12; ++i) {
+			for (std::size_t i = 0u; i < m_edges.size(); ++i) {
 				m_edges[i] = other.m_edges[i];
 			}
-			for (std::size_t i = 0u; i < 6; ++i) {
+			for (std::size_t i = 0u; i < m_faces.size(); ++i) {
 				m_faces[i] = other.m_faces[i];
 			}
 		};
@@ -463,6 +463,10 @@ namespace geometry {
 		inline vertexes get_vertexes() const { return m_vertexes; }
 		inline edges get_edges() const { return m_edges; };
 		inline faces get_faces() const { return m_faces; };
+	public:
+		bool operator==(const box<Dim>& other) {
+			return (m_center == other.m_center) && (m_half_sizes == other.m_half_sizes);
+		}
 	public:
 		/* tronsform methods */
 		void translate(const tsg::vector<scalar, Dim>& pos) {
@@ -685,6 +689,49 @@ namespace geometry {
 				assert(false);
 			}
 		}
+
+	};
+
+	template <std::size_t Dim> requires GeometricDimension<Dim>
+	class aabb_contact {
+		using point = tsg::vector<scalar, Dim>;
+		using vector = tsg::vector<scalar, Dim>;
+		using box = box<Dim>;
+	public:
+		aabb_contact(box& aabb1, box& aabb2) : m_aabb1(aabb1), m_aabb2(aabb2) {}
+	private:
+		class contact {
+			friend aabb_contact;
+		public:
+			contact() = default;
+			~contact() = default;
+			contact(const point& pt, const vector& vec, const scalar pen) :
+				m_point(pt), m_normal(vec), m_penetration(pen) {
+			}
+		public:
+			bool overlap() { 
+				/* TODO */
+				assert(0);
+				return false; 
+			}
+		public:
+			point get_point() const { return m_point; }
+			vector get_normal() const { return m_normal; }
+			vector get_penetration_vector() const { return m_penetration_vector; }
+		public:
+			bool operator==(const contact& other) const {
+				return (m_point == other.m_point) && (m_normal == other.m_normal) && (m_penetration == other.m_penetration);
+			}
+		private:
+			point m_point{};
+			vector m_normal{};
+			scalar m_penetration{};
+			vector m_penetration_vector{};
+		};
+	private:
+		box& m_aabb1;
+		box& m_aabb2;
+		std::vector<contact> m_contacts;
 
 	};
 

@@ -113,69 +113,74 @@ public:
 					}
 				}
 			}
-			else if constexpr (Dim == 2) {				/* Sorting objects x-based */
-				std::sort(m_objects.begin(), m_objects.end(), [](physical_object* a, physical_object* b) 
-					{
-						return a->get_box().get_min(geometry::X) < b->get_box().get_min(geometry::X);
-					}
-				);
-				/* First check if there is contact with world walls */
-				for (auto it = m_objects.begin(); it != m_objects.end(); ++it) {
-					auto obj = *it;
-					auto wall_contact = [&](const vector& normal) {
-						scalar seperataing_velocity{ vector::dot((obj->m_velocity), normal) };
-						vector impulse{ (-2 * seperataing_velocity / obj->m_inverse_mass) * normal };
-						obj->m_velocity += obj->m_inverse_mass * impulse;
-						//obj->update(scalar(0));
-					};
-					// compute if the new position is inside the world, else translate it
-					if (obj->m_box.get_max(AXES::X) > m_limits.get_max(AXES::X)) {
-						if (!obj->m_velocity.is_zero()) {
-							scalar dx = obj->get_box().get_max(AXES::X) - m_limits.get_max(AXES::X);
-							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
-							obj->translate({ -dx, -dy });
-							//obj->translate({ -dx, scalar(0)});
+			else if constexpr (Dim == 2) {
+				constexpr std::size_t max_iterations{ 1 };
+				for (std::size_t iteration{}; iteration < max_iterations; ++iteration) {
+					tsg::logger::get_instance().write("Iteration {}", iteration);
+					/* Sorting objects x-based */
+					std::sort(m_objects.begin(), m_objects.end(), [](physical_object* a, physical_object* b) 
+						{
+							return a->get_box().get_min(geometry::X) < b->get_box().get_min(geometry::X);
 						}
-						wall_contact({ scalar(-1), scalar(0)});
-					}
-					if (obj->m_box.get_max(AXES::Y) > m_limits.get_max(AXES::Y)) {
-						if (!obj->m_velocity.is_zero()) {
-							scalar dy = obj->get_box().get_max(AXES::Y) - m_limits.get_max(AXES::Y);
-							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
-							obj->translate({ -dx, -dy });
-							//obj->translate({ scalar(0), -dy});
+					);
+					/* First check if there is contact with world walls */
+					for (auto it = m_objects.begin(); it != m_objects.end(); ++it) {
+						auto obj = *it;
+						auto wall_contact = [&](const vector& normal) {
+							scalar seperataing_velocity{ vector::dot((obj->m_velocity), normal) };
+							vector impulse{ (-2 * seperataing_velocity / obj->m_inverse_mass) * normal };
+							obj->m_velocity += obj->m_inverse_mass * impulse;
+							//obj->update(scalar(0));
+							};
+						// compute if the new position is inside the world, else translate it
+						if (obj->m_box.get_max(AXES::X) > m_limits.get_max(AXES::X)) {
+							if (!obj->m_velocity.is_zero()) {
+								scalar dx = obj->get_box().get_max(AXES::X) - m_limits.get_max(AXES::X);
+								scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
+								obj->translate({ -dx, -dy });
+							}
+							wall_contact({ scalar(-1), scalar(0) });
+							return;
 						}
-						wall_contact({ scalar(0), scalar(-1)});
-					}
-					//
-					if (obj->m_box.get_min(AXES::X) < m_limits.get_min(AXES::X)) {
-						if (!obj->m_velocity.is_zero()) {
-							scalar dx = obj->get_box().get_min(AXES::X) - m_limits.get_min(AXES::X);
-							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
-							obj->translate({ -dx, -dy });
-							//obj->translate({ -dx, scalar(0)});
+						if (obj->m_box.get_max(AXES::Y) > m_limits.get_max(AXES::Y)) {
+							if (!obj->m_velocity.is_zero()) {
+								scalar dy = obj->get_box().get_max(AXES::Y) - m_limits.get_max(AXES::Y);
+								scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
+								obj->translate({ -dx, -dy });
+							}
+							wall_contact({ scalar(0), scalar(-1) });
+							return;
 						}
-						wall_contact({ scalar(1), scalar(0)});
-					}
-					if (obj->m_box.get_min(AXES::Y) < m_limits.get_min(AXES::Y)) {
-						if (!obj->m_velocity.is_zero()) {
-							scalar dy = obj->get_box().get_min(AXES::Y) - m_limits.get_min(AXES::Y);
-							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
-							obj->translate({ -dx, -dy });
-							//obj->translate({ scalar(0), -dy});
+						//
+						if (obj->m_box.get_min(AXES::X) < m_limits.get_min(AXES::X)) {
+							if (!obj->m_velocity.is_zero()) {
+								scalar dx = obj->get_box().get_min(AXES::X) - m_limits.get_min(AXES::X);
+								scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
+								obj->translate({ -dx, -dy });
+							}
+							wall_contact({ scalar(1), scalar(0) });
+							return;
 						}
-						wall_contact({ scalar(0), scalar(1)});
-					}
-					/* Search contacts with next objects */
-					auto next_it = std::next(it);
-					while (next_it != m_objects.end()) {
-						auto next_obj = *next_it;
-						if (contact(obj->get_box(), next_obj->get_box())) {
-							resolve_contact(obj, next_obj);
-							++next_it;
+						if (obj->m_box.get_min(AXES::Y) < m_limits.get_min(AXES::Y)) {
+							if (!obj->m_velocity.is_zero()) {
+								scalar dy = obj->get_box().get_min(AXES::Y) - m_limits.get_min(AXES::Y);
+								scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
+								obj->translate({ -dx, -dy });
+							}
+							wall_contact({ scalar(0), scalar(1) });
+							return;
 						}
-						else {
-							next_it = m_objects.end();
+						/* Search contacts with next objects */
+						auto next_it = std::next(it);
+						while (next_it != m_objects.end()) {
+							auto next_obj = *next_it;
+							if (contact(obj->get_box(), next_obj->get_box())) {
+								resolve_contact(obj, next_obj);
+								++next_it;
+							}
+							else {
+								next_it = m_objects.end();
+							}
 						}
 					}
 				}
@@ -347,6 +352,7 @@ public:
 					return false;
 				}
 #if 0
+				/* OBB test */ /
 				auto is_separating_axis = [](const vector& axis, const box& a, const box& b) -> scalar {
 					auto project_box_into_axes = [](const box& b, const vector& axis) -> std::pair<scalar, scalar> {
 						scalar center_proj = vector::dot(b.get_center(), axis);
@@ -377,12 +383,6 @@ public:
 			/*
 			* Compute contact data
 			*/
-#if 0
-			std::swap(a->m_velocity[AXES::X], a->m_velocity[AXES::Y]);
-			a->m_velocity[AXES::X] *= -1;
-			std::swap(b->m_velocity[AXES::X], a->m_velocity[AXES::Y]);
-			b->m_velocity[AXES::X] *= -1;
-#endif
 #if 1
 			geometry::obb_contact<Dim> resolver(a->get_box(), b->get_box());
 			resolver.compute();
@@ -399,38 +399,25 @@ public:
 					// objects are separating, no need to resolve
 					return;
 				}		
+				/*
+				* TODO
+				* case with resting contact ... not still working properly!
+				*/ 
+				constexpr scalar velocity_threshold{ scalar(0.1) };
+				if (-separating_velocity < velocity_threshold ) {
+					return;
+				}
+				/* case with restitution coeff variable */
+				constexpr scalar restutition_coeff{ scalar(1) };
+				scalar new_separating_velocity{ -separating_velocity * restutition_coeff };
+				scalar delta_velocity{ new_separating_velocity - separating_velocity };
+				vector impulse{ (delta_velocity / total_inverse_mass) * contact.get_normal() };
 				/* case in which I don't have restitution degradation (restitution coeff = 1) */
-				vector impulse{ (-2 * separating_velocity / total_inverse_mass) * contact.get_normal()};
+				vector old_impulse{ (-2 * separating_velocity / total_inverse_mass) * contact.get_normal()};
 				a->m_velocity += a->m_inverse_mass * impulse;
 				b->m_velocity -= b->m_inverse_mass * impulse;
-				a->update(scalar(0));
-				b->update(scalar(0));
-#if 0
-				/* I know that the box should translate along x of dx. The object has a velocity v that determine a direction
-				* then to compute the point of contact I should translate the object of dx.
-				*/
-				if (!a->m_velocity.is_zero()) {
-					scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-					scalar dy{ dx * a->m_velocity.get<AXES::Y>() / a->m_velocity.get<AXES::X>() };
-					//a->translate({ -dx, -dy });
-				}
-				else if (!b->m_velocity.is_zero()) {
-					scalar dx = a->get_box().get_max(AXES::X) - b->get_box().get_min(AXES::X);
-					scalar dy{ dx * b->m_velocity.get<AXES::Y>() / b->m_velocity.get<AXES::X>() };
-					//b->translate({ -dx, -dy });
-				}
-				point contact_point = a->get_box().get_max_point<AXES::X>();
-				vector naive_normal = (a->get_box().get_center() - b->get_box().get_center()).get_normalized();
-				point point = contact.get_point();
-				vector normal = contact.get_normal();
-				scalar seperataing_velocity{ vector::dot((a->m_velocity - b->m_velocity), normal) };
-				scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
-				vector impulse{ (-2 * seperataing_velocity / total_inverse_mass) * normal };
-				a->m_velocity += a->m_inverse_mass * impulse;
-				b->m_velocity -= b->m_inverse_mass * impulse;
-				a->update(scalar(0));
-				b->update(scalar(0));
-#endif
+				/*a->update(scalar(0));
+				b->update(scalar(0));*/
 			}
 #endif
 		};
