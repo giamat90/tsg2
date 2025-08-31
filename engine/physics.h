@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <tsg/io.h>
 #include <utility>
+#include <tsg/types.h>
 
 using geometry::AXES;
 using geometry::scalar;
@@ -391,8 +392,8 @@ public:
 				/* resolve interpenetration */
 				scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
 				vector move_per_mass{ contact.get_penetration_vector() * (scalar(-1) / total_inverse_mass) };
-				a->translate(a->m_inverse_mass * move_per_mass);
-				b->translate(b->m_inverse_mass * move_per_mass);
+				//a->translate(a->m_inverse_mass * move_per_mass);
+				//b->translate(b->m_inverse_mass * move_per_mass);
 				/* resolve velocity */
 				scalar separating_velocity{ vector::dot((a->m_velocity - b->m_velocity), contact.get_normal()) };
 				if(separating_velocity > geometry::scalar_zero) {
@@ -416,8 +417,8 @@ public:
 				vector old_impulse{ (-2 * separating_velocity / total_inverse_mass) * contact.get_normal()};
 				a->m_velocity += a->m_inverse_mass * impulse;
 				b->m_velocity -= b->m_inverse_mass * impulse;
-				/*a->update(scalar(0));
-				b->update(scalar(0));*/
+				//a->update(scalar(0));
+				//b->update(scalar(0));
 			}
 #endif
 		};
