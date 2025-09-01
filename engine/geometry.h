@@ -689,7 +689,6 @@ namespace geometry {
 				assert(false);
 			}
 		}
-
 	};
 
 	template <std::size_t Dim> requires GeometricDimension<Dim>
@@ -989,4 +988,16 @@ namespace geometry {
 		box& m_obb2;
 		std::vector<contact> m_contacts;
 	};
+
+#if 0
+	template <std::size_t Dim> requires GeometricDimension<Dim>
+	class orientation {
+		using angular_velocity = Dim == 3  ? tsg::vector<scalar, Dim> : Dim == 2 ? scalar : static_assert(false);
+		using intertia_moment = Dim == 3 ? tsg::matrix<scalar, Dim, Dim> : Dim == 2 ? scalar : static_assert(false);
+	private:
+		angular_velocity m_angular_velocity{};
+		intertia_moment m_inertia_moment{};
+
+	};
+#endif
 }

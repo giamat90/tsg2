@@ -15,6 +15,8 @@ using geometry::quaternion;
 using geometry::matrix3D;
 using geometry::bounding_volume;
 
+#define RESOLVE_INTERPENETRATION 0
+
 template <std::size_t Dim> requires geometry::GeometricDimension<Dim>
 class physics {
 	/* Generic definitions */
@@ -44,10 +46,9 @@ public:
 				for (auto it = m_objects.begin(); it != m_objects.end(); ++it) {
 					auto obj = *it;
 					auto wall_contact = [&](const vector& normal) {
-						scalar seperataing_velocity{ vector::dot((obj->m_velocity), normal) };
-						vector impulse{ (-2 * seperataing_velocity / obj->m_inverse_mass) * normal };
-						obj->m_velocity += obj->m_inverse_mass * impulse;
-						obj->update(scalar(0));
+							scalar seperataing_velocity{ vector::dot((obj->m_velocity), normal) };
+							vector impulse{ (-2 * seperataing_velocity / obj->m_inverse_mass) * normal };
+							obj->m_velocity += obj->m_inverse_mass * impulse;
 						};
 					// compute if the new position is inside the world, else translate it
 					if (obj->m_box.get_max(AXES::X) > m_limits.get_max(AXES::X)) {
@@ -389,25 +390,20 @@ public:
 			resolver.compute();
 			if (auto res = resolver.get_best_contact()) {
 				auto contact = res.value();
-				/* resolve interpenetration */
 				scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
+#if RESOLVE_INTERPENETRATION
+				/* resolve interpenetration */
 				vector move_per_mass{ contact.get_penetration_vector() * (scalar(-1) / total_inverse_mass) };
-				//a->translate(a->m_inverse_mass * move_per_mass);
-				//b->translate(b->m_inverse_mass * move_per_mass);
+				a->translate(a->m_inverse_mass * move_per_mass);
+				b->translate(b->m_inverse_mass * move_per_mass);
+#endif
 				/* resolve velocity */
 				scalar separating_velocity{ vector::dot((a->m_velocity - b->m_velocity), contact.get_normal()) };
-				if(separating_velocity > geometry::scalar_zero) {
+				if(separating_velocity > scalar(0)) {
 					// objects are separating, no need to resolve
 					return;
 				}		
-				/*
-				* TODO
-				* case with resting contact ... not still working properly!
-				*/ 
-				constexpr scalar velocity_threshold{ scalar(0.1) };
-				if (-separating_velocity < velocity_threshold ) {
-					return;
-				}
+				/* Linear coefficient */
 				/* case with restitution coeff variable */
 				constexpr scalar restutition_coeff{ scalar(1) };
 				scalar new_separating_velocity{ -separating_velocity * restutition_coeff };
@@ -417,8 +413,18 @@ public:
 				vector old_impulse{ (-2 * separating_velocity / total_inverse_mass) * contact.get_normal()};
 				a->m_velocity += a->m_inverse_mass * impulse;
 				b->m_velocity -= b->m_inverse_mass * impulse;
-				//a->update(scalar(0));
-				//b->update(scalar(0));
+				/* Angular coefficient */
+				if constexpr (Dim == 3) {
+					assert(0); // TODO
+				} else if constexpr (Dim == 2) {
+					auto tmp = contact.get_point() - a->m_position;
+					auto opposite_impulse = scalar(-1) * impulse;
+					const scalar torque_a = tsg::vector<scalar, 3>::cross(geometry::point3D(tmp), geometry::point3D(opposite_impulse))[AXES::Z];
+					tmp = contact.get_point() - b->m_position;
+					const scalar torque_b = tsg::vector<scalar, 3>::cross(geometry::point3D(tmp), geometry::point3D(opposite_impulse))[AXES::Z];
+					a->m_angular_velocity += torque_a * a->m_inverse_mass * impulse.get<AXES::Z>();
+					b->m_angular_velocity -= torque_b * b->m_inverse_mass * impulse.get<AXES::Z>();
+				}
 			}
 #endif
 		};
