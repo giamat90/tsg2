@@ -11,6 +11,7 @@
 #include <concepts>	// c++20
 #include <array>	// c++11
 #include <expected>	// c++23
+#include <numbers>     // pi_v
 
 namespace geometry {
 	template <std::size_t Dim>
@@ -63,6 +64,7 @@ namespace geometry {
 	}
 	constexpr scalar epsilon = std::numeric_limits<double>::epsilon();
 	constexpr scalar scalar_zero{ 1e-6 };
+	constexpr scalar pi{ std::numbers::pi_v<double> };
 #else
 #define SINGLE_PRECISION
 	using scalar = float;
@@ -87,6 +89,7 @@ namespace geometry {
 	}
 	constexpr scalar epsilon = std::numeric_limits<float>::epsilon();
 	constexpr scalar scalar_zero{ 1e-6f };
+	constexpr scalar pi{ std::numbers::pi_v<float> };
 #endif
 
 	using point2D = tsg::vector<scalar, 2>;

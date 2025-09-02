@@ -422,8 +422,9 @@ public:
 					const scalar torque_a = tsg::vector<scalar, 3>::cross(geometry::point3D(tmp), geometry::point3D(opposite_impulse))[AXES::Z];
 					tmp = contact.get_point() - b->m_position;
 					const scalar torque_b = tsg::vector<scalar, 3>::cross(geometry::point3D(tmp), geometry::point3D(opposite_impulse))[AXES::Z];
-					a->m_angular_velocity += torque_a * a->m_inverse_mass * impulse.get<AXES::Z>();
-					b->m_angular_velocity -= torque_b * b->m_inverse_mass * impulse.get<AXES::Z>();
+					a->m_angular_speed += torque_a; // *a->m_inverse_mass* impulse.get<AXES::Z>();
+					b->m_angular_speed -= torque_b; // *b->m_inverse_mass* impulse.get<AXES::Z>();
+
 				}
 			}
 #endif
@@ -474,6 +475,10 @@ public:
 			/*
 			* Update orientation and rotation
 			*/
+			m_rotation += (m_angular_speed * delta_time) * scalar(360) / scalar(2 * geometry::pi);
+			if(m_rotation > scalar(360)) {
+				m_rotation -= scalar(360);
+			}
 #if TODO
 			quaternion delta_orientation{ 0, m_angular_velocity[AXES::X] * scalar(0.5), m_angular_velocity[AXES::Y] * scalar(0.5), m_angular_velocity[AXES::Z] * scalar(0.5) };
 			m_orientation += delta_orientation * m_orientation;
