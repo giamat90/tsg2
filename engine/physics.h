@@ -474,6 +474,12 @@ public:
 	class physical_object {
 		friend physics;
 	public:
+		virtual ~physical_object() {
+			if (m_bounding_volume) {
+				delete m_bounding_volume;
+				m_bounding_volume = nullptr;
+			}
+		};
 	public:
 		void set_physical_world(physical_world* const world) { m_world = world; }
 	public:
