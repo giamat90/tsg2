@@ -21,14 +21,15 @@ void arrow::init() {
 	m_sprite->set_scale(0.5f);
 	auto w = m_sprite->get_size().get<geometry::AXES::X>();
 	auto h = m_sprite->get_size().get<geometry::AXES::Y>();
-	geometry::box2D b(m_position, { w / scalar(2), h / scalar(2) });
-	set_bounding_volume(b);
+	geometry::vector2D half_sizes{ w / scalar(2), h / scalar(2) };
+	half_sizes.scale(m_world->get_scale());
+	set_bounding_volume<geometry::bounding_volume::type::box>(m_position, half_sizes);
 	set_mass(scalar(1));
 }
 
 void arrow::update(const scalar delta_time) {
-	/* ToDo */
-	physics<2>::physical_object::update(delta_time);
+	physical_object::update(delta_time);
+	/* TODO: move to an hidden place */
 	m_sprite->set_where(texture::position({ m_position[geometry::AXES::X], m_position[geometry::AXES::Y]}));
 	m_sprite->set_rotation(m_rotation);
 }

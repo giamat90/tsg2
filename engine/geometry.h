@@ -11,7 +11,7 @@
 #include <concepts>	// c++20
 #include <array>	// c++11
 #include <expected>	// c++23
-#include <numbers>     // pi_v
+#include <numbers>  // pi_v
 
 namespace geometry {
 	template <std::size_t Dim>
@@ -65,6 +65,7 @@ namespace geometry {
 	constexpr scalar epsilon = std::numeric_limits<double>::epsilon();
 	constexpr scalar scalar_zero{ 1e-6 };
 	constexpr scalar pi{ std::numbers::pi_v<double> };
+	constexpr scalar nan{ std::numeric_limits<double>::quiet_NaN() };
 #else
 #define SINGLE_PRECISION
 	using scalar = float;
@@ -90,6 +91,7 @@ namespace geometry {
 	constexpr scalar epsilon = std::numeric_limits<float>::epsilon();
 	constexpr scalar scalar_zero{ 1e-6f };
 	constexpr scalar pi{ std::numbers::pi_v<float> };
+	constexpr scalar nan{ std::numeric_limits<float>::quiet_NaN() };
 #endif
 
 	using point2D = tsg::vector<scalar, 2>;
@@ -366,6 +368,7 @@ namespace geometry {
 		enum class type {
 			box,
 			sphere,
+			polygon,
 			unknown
 		};
 	public:
@@ -373,6 +376,18 @@ namespace geometry {
 		virtual ~bounding_volume() = default;
 		const type get_type() const { return m_type; };
 		const std::size_t get_dimension() const { return m_dimension; };
+	public:
+		virtual void translate(const tsg::vector<scalar, 2>& pos) {
+			/* can't be pure virtual because of it depends ont the dimension... */
+			assert(0); // not implemented
+		};
+		virtual void translate(const tsg::vector<scalar, 3>& pos) {
+			/* can't be pure virtual because of it depends ont the dimension... */
+			assert(0); // not implemented
+		};
+		virtual void rotate(const scalar angle) = 0;
+		inline virtual scalar get_min(const std::size_t axes) const = 0;
+		inline virtual scalar get_max(const std::size_t axes) const = 0;
 	protected:
 		type m_type{ type::unknown };
 		std::size_t m_dimension{};
@@ -397,15 +412,7 @@ namespace geometry {
 		box(const tsg::vector<scalar, Dim>& center, const tsg::vector<scalar, Dim>& half_sizes) :
 			bounding_volume(type::box, Dim), m_center(center), m_half_sizes(half_sizes)
 		{
-			if constexpr (Dim == 2) {
-				compute2D();
-			}
-			else if constexpr (Dim == 3) {
-				compute3D();
-			}
-			else {
-				assert(0); // unsupported dimension
-			}			
+			compute();
 		};
 		box(const box<Dim>& other) : 
 			bounding_volume(type::box),
@@ -428,9 +435,7 @@ namespace geometry {
 	public:
 		// setter
 		inline void set_center(const tsg::vector<scalar, Dim>& c) { m_center = c; }
-		//inline void set_center(tsg::vector<scalar, Dim> c) { m_center = c; }
 		inline void set_half_sizes(const tsg::vector<scalar, Dim>& hs) { m_half_sizes = hs; }
-		//inline void set_half_sizes(tsg::vector<scalar, Dim> hs) { m_half_sizes = hs; }
 		// getters
 		inline tsg::vector<scalar, Dim> get_center() const { return m_center; };
 		template <std::size_t Ax>
@@ -454,11 +459,11 @@ namespace geometry {
 		inline tsg::vector<scalar, Dim> get_half_sizes() const {
 			return m_half_sizes;
 		}
-		inline scalar get_max(const std::size_t axes) const {
+		inline scalar get_max(const std::size_t axes) const override {
 			assert(axes < Dim);
 			return m_center[axes] + m_half_sizes[axes];
 		};
-		inline scalar get_min(const std::size_t axes) const {
+		inline scalar get_min(const std::size_t axes) const override {
 			assert(axes < Dim);
 			return m_center[axes] - m_half_sizes[axes];
 		};
@@ -472,10 +477,11 @@ namespace geometry {
 		}
 	public:
 		/* tronsform methods */
-		void translate(const tsg::vector<scalar, Dim>& pos) {
+		void translate(const tsg::vector<scalar, Dim>& pos) override {
 			m_center += pos;
+			compute();
 		}
-		void rotate(const scalar angle) {
+		void rotate(const scalar angle) override {
 			/* TODO */
 			assert(false);
 		}
@@ -494,99 +500,104 @@ namespace geometry {
 		/*
 		* Private methods to compute the box vertexes, edges and faces
 		*/
-		void compute2D() {
-			/*
-			* Compute vertexes: center ± sizes computed with bit operations, very efficent way
-			*   i | Binario | Bit1 | Bit0 | Y    | X
-			*	--|---------|------|------|------|------
-			*	0 |    00   |  0   |  0   | -ext | -ext
-			*	1 |    01   |  0   |  1   | -ext | +ext
-			*	2 |    10   |  1   |  0   | +ext | -ext
-			*	3 |    11   |  1   |  1   | +ext | +ext
-			*  The order is this: 
-			* 
-			*   2----------3
-			*   |          |
-			*   |          |  
-			*   |          | 
-			*   |          |
-			*   0----------1
-			*/
-			// TODO: verify rows or columns.
-			point vertex = m_center;
-			for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
-				m_vertexes[i] = m_center +
-					m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
-					m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]);
+		void compute() {
+			if constexpr (Dim == 2) {
+				/*
+				* Compute vertexes: center ± sizes computed with bit operations, very efficent way
+				*   i | Binario | Bit1 | Bit0 | Y    | X
+				*	--|---------|------|------|------|------
+				*	0 |    00   |  0   |  0   | -ext | -ext
+				*	1 |    01   |  0   |  1   | -ext | +ext
+				*	2 |    10   |  1   |  0   | +ext | -ext
+				*	3 |    11   |  1   |  1   | +ext | +ext
+				*  The order is this:
+				*
+				*   2----------3
+				*   |          |
+				*   |          |
+				*   |          |
+				*   |          |
+				*   0----------1
+				*/
+				// TODO: verify rows or columns.
+				point vertex = m_center;
+				for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
+					m_vertexes[i] = m_center +
+						m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
+						m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]);
+				}
+				/*
+				* Compute edges:
+				* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
+				*/
+				std::size_t vertexes_index[4][2] = {
+					{0,1}, {1, 3}, {3, 2}, {2, 0}
+				};
+				/* With these vertex index we can compute every edges as edge(end - start). */
+				for (std::size_t i = 0u; i < m_edges.size(); ++i) {
+					m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
+				}
+				/*
+				* Compute faces
+				*/
+				for (std::size_t i = 0u; i < m_faces.size(); ++i) {
+					m_faces[i] = face(m_center);
+				}
 			}
-			/*
-			* Compute edges:
-			* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
-			*/
-			std::size_t vertexes_index[4][2] = {
-				{0,1}, {1, 3}, {3, 2}, {2, 0}
-			};
-			/* With these vertex index we can compute every edges as edge(end - start). */
-			for (std::size_t i = 0u; i < m_edges.size(); ++i) {
-				m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
+			else if constexpr (Dim == 3) {
+				/*
+				* Compute vertexes: center ± sizes computed with bit operations, very efficent way
+				*   i | Binario | Bit2 | Bit1 | Bit0 | Z    | Y    | X
+				*	--|---------|------|------|------|------|------|------
+				*	0 |   000   |  0   |  0   |  0   | -ext | -ext | -ext
+				*	1 |   001   |  0   |  0   |  1   | -ext | -ext | +ext
+				*	2 |   010   |  0   |  1   |  0   | -ext | +ext | -ext
+				*	3 |   011   |  0   |  1   |  1   | -ext | +ext | +ext
+				*	4 |   100   |  1   |  0   |  0   | +ext | -ext | -ext
+				*	5 |   101   |  1   |  0   |  1   | +ext | -ext | +ext
+				*	6 |   110   |  1   |  1   |  0   | +ext | +ext | -ext
+				*	7 |   111   |  1   |  1   |  1   | +ext | +ext | +ext
+				*  The order is this:
+				*      6----------7
+				*     /|         /|
+				*    / |        / |
+				*   2----------3  |
+				*   |  |       |  |
+				*   |  4-------|--5
+				*   | /        | /
+				*   |/         |/
+				*   0----------1
+				*/
+				// TODO: verify rows or columns.
+				point vertex = m_center;
+				for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
+					m_vertexes[i] = m_center +
+						m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
+						m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]) +
+						m_base.get_row<2>() * ((i & 4) ? m_half_sizes[2] : -m_half_sizes[2]);
+				}
+				/*
+				* Compute edges:
+				* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
+				*/
+				std::size_t vertexes_index[12][2] = {
+					{0,1}, {1, 3}, {3, 2}, {2, 0},	// front face's ages
+					{4,5}, {5,7}, {7,6}, {6,4},		// behind face's edges
+					{1,5}, {0,4}, {3,7}, {2,6}		// horizontal edges
+				};
+				/* With these vertex index we can compute every edges as edge(end - start). */
+				for (std::size_t i = 0u; i < m_edges.size(); ++i) {
+					m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
+				}
+				/*
+				* Compute faces
+				*/
+				for (std::size_t i = 0u; i < m_faces.size(); ++i) {
+					m_faces[i] = face(m_center);
+				}
 			}
-			/*
-			* Compute faces
-			*/
-			for (std::size_t i = 0u; i < m_faces.size(); ++i) {
-				m_faces[i] = face(m_center);
-			}
-		};
-		void compute3D() {
-			/*
-			* Compute vertexes: center ± sizes computed with bit operations, very efficent way
-			*   i | Binario | Bit2 | Bit1 | Bit0 | Z    | Y    | X
-			*	--|---------|------|------|------|------|------|------
-			*	0 |   000   |  0   |  0   |  0   | -ext | -ext | -ext
-			*	1 |   001   |  0   |  0   |  1   | -ext | -ext | +ext
-			*	2 |   010   |  0   |  1   |  0   | -ext | +ext | -ext
-			*	3 |   011   |  0   |  1   |  1   | -ext | +ext | +ext
-			*	4 |   100   |  1   |  0   |  0   | +ext | -ext | -ext
-			*	5 |   101   |  1   |  0   |  1   | +ext | -ext | +ext
-			*	6 |   110   |  1   |  1   |  0   | +ext | +ext | -ext
-			*	7 |   111   |  1   |  1   |  1   | +ext | +ext | +ext
-			*  The order is this:
-			*      6----------7
-			*     /|         /|
-			*    / |        / |
-			*   2----------3  |
-			*   |  |       |  |
-			*   |  4-------|--5
-			*   | /        | /
-			*   |/         |/
-			*   0----------1
-			*/
-			// TODO: verify rows or columns.
-			point vertex = m_center;
-			for (std::size_t i = 0; i < m_vertexes.size(); ++i) {
-				m_vertexes[i] = m_center +
-					m_base.get_row<0>() * ((i & 1) ? m_half_sizes[0] : -m_half_sizes[0]) +
-					m_base.get_row<1>() * ((i & 2) ? m_half_sizes[1] : -m_half_sizes[1]) +
-					m_base.get_row<2>() * ((i & 4) ? m_half_sizes[2] : -m_half_sizes[2]);
-			}
-			/*
-			* Compute edges:
-			* Given the vertexe's order (see above), the indexes that determine every edges are the following 12:
-			*/
-			std::size_t vertexes_index[12][2] = {
-				{0,1}, {1, 3}, {3, 2}, {2, 0},	// front face's ages
-				{4,5}, {5,7}, {7,6}, {6,4},		// behind face's edges
-				{1,5}, {0,4}, {3,7}, {2,6}		// horizontal edges
-			};
-			/* With these vertex index we can compute every edges as edge(end - start). */
-			for (std::size_t i = 0u; i < m_edges.size(); ++i) {
-				m_edges[i] = edge(m_vertexes[vertexes_index[i][0]], m_vertexes[vertexes_index[i][1]]);
-			}
-			/*
-			* Compute faces
-			*/
-			for (std::size_t i = 0u; i < m_faces.size(); ++i) {
-				m_faces[i] = face(m_center);
+			else {
+				assert(0); // unsupported dimension
 			}
 		};
 	private:
@@ -621,15 +632,41 @@ namespace geometry {
 		sphere(const point c = point(), const scalar r = 0.0f) :
 			bounding_volume(type::sphere), m_center(c), m_radius(r) {}
 	public:
-		void translate(const vector&) { assert(0); };
+		inline point get_center() const { return m_center; }
+		inline scalar get_radius() const { return m_radius; }
+	public:
+		void translate(const vector& t) override  { 
+			m_center.translate(t); 
+		};
+		void rotate(const scalar angle) override { 
+			/* nothing to do */ 
+			return;
+		};
+		inline scalar get_min(const std::size_t axes) const override {
+			assert(axes < Dim);
+			return m_center[axes] - m_radius;
+		};
+		inline scalar get_max(const std::size_t axes) const override {
+			assert(axes < Dim);
+			return m_center[axes] + m_radius;
+		};
 	private:
 		point m_center;
 		scalar m_radius;
 	};
 
+	template<std::size_t Dim> requires GeometricDimension<Dim>
+	class polygon : public bounding_volume {
+		using point = tsg::vector<scalar, Dim>;
+		using vector = tsg::vector<scalar, Dim>;
+	public:
+		polygon() : bounding_volume(type::polygon) { assert(0); }
+		~polygon() = default;
+	};
+
 	/* distance functions  point - point */
 	template<std::size_t Dim> requires Dimension2D<Dim> || Dimension3D<Dim>
-	scalar distance(const tsg::vector<scalar, Dim>&p, const tsg::vector<scalar, Dim>&q) {
+	scalar distance(const tsg::vector<scalar, Dim>& p, const tsg::vector<scalar, Dim>& q) {
 		return (p - q).get_norm();
 	}
 	/* distance functions  point - plane */
@@ -639,7 +676,7 @@ namespace geometry {
 	};
 	/* distance functions  point - segment */
 	template<std::size_t Dim> requires Dimension2D<Dim> || Dimension3D<Dim>
-	scalar distance(const tsg::vector<scalar, Dim>&p, segment<Dim>& s) {
+	scalar distance(const tsg::vector<scalar, Dim>& p, segment<Dim>& s) {
 		/* TODO */
 		assert(0);
 		return scalar(0);
@@ -717,9 +754,9 @@ namespace geometry {
 				return false; 
 			}
 		public:
-			point get_point() const { return m_point; }
-			vector get_normal() const { return m_normal; }
-			vector get_penetration_vector() const { return m_penetration_vector; }
+			inline point get_point() const { return m_point; }
+			inline vector get_normal() const { return m_normal; }
+			inline vector get_penetration_vector() const { return m_penetration_vector; }
 		public:
 			bool operator==(const contact& other) const {
 				return (m_point == other.m_point) && (m_normal == other.m_normal) && (m_penetration == other.m_penetration);
