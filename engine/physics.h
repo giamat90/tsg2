@@ -180,12 +180,6 @@ public:
 							resolve_contact(obj, next_obj);
 							++next_it;
 						}
-#if 0
-						if (contact(obj->get_box(), next_obj->get_box())) {
-							resolve_contact(obj, next_obj);
-							++next_it;
-						}
-#endif
 						else {
 							next_it = m_objects.end();
 						}
