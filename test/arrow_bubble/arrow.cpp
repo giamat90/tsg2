@@ -32,7 +32,6 @@ void arrow::update(const scalar delta_time) {
 	sprite_object::update(m_position, m_rotation);
 }
 
-
 void arrow::process_input(input_engine* const input) {
 	//m_velocity.zero();
 	if (input->is_key_pressed(INPUT_KEY::KEY_W)) {

@@ -3,6 +3,7 @@
 #include <tsg/logger.h>
 #include <random>
 #include <physics.h>
+#include <contact.h>
 
 bubble::bubble() {
 	m_sprite = sprite::create_sprite();
@@ -29,16 +30,14 @@ void bubble::init() {
 			scalar candidate_x = dis(gen);
 			scalar candidate_y = dis(gen);
 			auto candidate_box = geometry::box2D({ candidate_x, candidate_y }, geometry::vector2D({ scalar(w) / scalar(2), scalar(h) / scalar(2) }).get_scalarized(m_world->get_scale()));
-			auto compute_overlap = [](const geometry::box2D& a, const geometry::box2D& b) -> bool 
-				{
-					bool overlap = true;
-					if (a.get_max(AXES::X) < b.get_min(AXES::X) || a.get_max(AXES::Y) < b.get_min(AXES::Y)) {
-						overlap = false;
-					}
-					return overlap;
-				};
+			/* Help class friend to bubble to use protected method specialized for AABB... its for a good reason!*/
+			class contact_friend : public contact_engine<2> {				
+				friend bubble;
+			};
+			contact_friend engine(contact_engine<2>::box_resolver::AABB);
 			for (auto box : boxes) {
-				pos_available = !(compute_overlap(box, candidate_box) && compute_overlap(candidate_box, box));
+				engine.computeAABB(box, candidate_box);
+				pos_available = !engine.has_contact();
 			}
 			if(pos_available) {
 				set_bounding_volume<bounding_volume::type::box>(candidate_box.get_center(), candidate_box.get_half_sizes());
@@ -49,11 +48,16 @@ void bubble::init() {
 			assert(0); // no position available
 		}
 	}
-	tsg::logger::get_instance().write("Bubble start at ({},{})",
+	tsg::logger::get_instance().write("Bubble start at ({},{}), (min_x, max_x) = ({}, {}), (min_y, max_y) = ({}, {})",
 		boxes.back().get_center().get<geometry::AXES::X>(),
-		boxes.back().get_center().get<geometry::AXES::Y>());
-	set_mass(scalar(1));
+		boxes.back().get_center().get<geometry::AXES::Y>(),
+		boxes.back().get_min(AXES::X),
+		boxes.back().get_max(AXES::X),
+		boxes.back().get_min(AXES::Y),
+		boxes.back().get_max(AXES::Y));
+	m_position = boxes.back().get_center();
 	m_velocity = { dis(gen), dis(gen) };
+	set_mass(scalar(1));
 }
 
 void bubble::update(const scalar delta_time) {

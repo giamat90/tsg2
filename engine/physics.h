@@ -571,6 +571,13 @@ public:
 		scalar get_mass() const { return scalar(1) / m_inverse_mass; }
 		inline void set_infinite_mass() { m_inverse_mass = scalar(0); }
 	protected:
+		inline void go_forward() { /* TODO */ assert(0); }
+		inline void go_backward() { /* TODO */ assert(0); }
+		inline void go_left() { /* TODO */ assert(0); }
+		inline void go_right() { /* TODO */ assert(0); }
+		inline void go_up() { /* TODO */ assert(0); }
+		inline void go_down() { /* TODO */ assert(0); }
+		inline void stop() { m_velocity.zero(); m_acceleration.zero(); }
 		inline void push(const vector& force) {
 			m_acceleration += m_inverse_mass * force;
 		}

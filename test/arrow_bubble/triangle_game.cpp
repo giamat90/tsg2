@@ -54,7 +54,6 @@ void triangle_game::run_game() {
 }
 
 void triangle_game::shutdown() {
-	/* ToDo */
 	quit();
 }
 
@@ -80,12 +79,12 @@ void triangle_game::initialize_objects() {
 		INCLUDE_BOUNDING_VOLUME(m_bubbles[i].print_bounding_volume(true));
 		INCLUDE_BUBBLE(add_drawable(&m_bubbles[i]));
 		INCLUDE_BUBBLE(m_bubbles[i].init());
-		INCLUDE_BOUNDING_VOLUME(add_bounding_volume( m_bubbles[i].get_bounding_volume(),m_bubbles[i].get_sprite()->get_scale()));
+		INCLUDE_BOUNDING_VOLUME(add_bounding_volume(m_bubbles[i].get_bounding_volume(), m_bubbles[i].get_sprite()->get_scale()));
 	}
 }
 
 void triangle_game::process_input() {
-	if( GAME_EVENTS::QUIT == get_event()){
+	if( GAME_EVENTS::QUIT == get_event()) {
 		m_state = GAME_STATE::SHUT_DOWN;
 	}
 	m_input.process_input();

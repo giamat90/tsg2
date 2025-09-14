@@ -327,10 +327,10 @@ namespace geometry {
 			return *this;
 		};
 	private:
-		point m_start;
-		point m_end;
+		point m_start{};
+		point m_end{};
 		vector m_vector{};
-		scalar m_lenght;
+		scalar m_lenght{};
 	};
 	/*
 	* class to compute a finite/limited plane, like a face or a wall, in 3D space
@@ -357,10 +357,10 @@ namespace geometry {
 			return geometry::abs(u) <= m_half_sizes[0] && geometry::abs(v) <= m_half_sizes[1];
 		}
 	protected:
-		point m_center;
-		vector m_normal;
+		point m_center{};
+		vector m_normal{};
 		vector m_base[2];
-		vector2D m_half_sizes;
+		vector2D m_half_sizes{};
 	};
 
 	class bounding_volume {
