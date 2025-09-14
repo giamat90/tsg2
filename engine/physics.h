@@ -509,11 +509,9 @@ public:
 			m_acceleration.zero();
 			/*
 			* Update orientation and rotation
+			* TODO: check if it should be converted to deg
 			*/
-			m_rotation += (m_angular_speed * delta_time) * scalar(360) / scalar(2 * geometry::pi);
-			if(m_rotation > scalar(360)) {
-				m_rotation -= scalar(360);
-			}
+			m_rotation += (m_angular_speed * delta_time);
 #if TODO
 			quaternion delta_orientation{ 0, m_angular_velocity[AXES::X] * scalar(0.5), m_angular_velocity[AXES::Y] * scalar(0.5), m_angular_velocity[AXES::Z] * scalar(0.5) };
 			m_orientation += delta_orientation * m_orientation;
@@ -560,9 +558,9 @@ public:
 				assert(0);
 			}
 		};
-		void set_bounding_volume(const bounding_volume& other) { *m_bounding_volume = other; };
+		inline void set_bounding_volume(const bounding_volume& other) { *m_bounding_volume = other; };
 		bounding_volume * const get_bounding_volume() { return m_bounding_volume; }
-		void set_mass(const scalar m) {
+		inline void set_mass(const scalar m) {
 			if (m > scalar(0)) {
 				m_inverse_mass = scalar(1) / m;
 			}
@@ -571,13 +569,16 @@ public:
 			}
 		};
 		scalar get_mass() const { return scalar(1) / m_inverse_mass; }
-		void set_infinite_mass() { m_inverse_mass = scalar(0); }
+		inline void set_infinite_mass() { m_inverse_mass = scalar(0); }
 	protected:
 		inline void push(const vector& force) {
 			m_acceleration += m_inverse_mass * force;
 		}
 	protected:
+		// world where the object lives
 		physical_world* m_world{ nullptr };
+		// boundaries
+		bounding_volume* m_bounding_volume{ nullptr };
 		// linear proprieties
 		vector m_position{};
 		vector m_velocity{};
@@ -597,8 +598,6 @@ public:
 		// dampings
 		scalar m_linear_damping{};
 		scalar m_angular_damping{};
-		// boundaries
-		bounding_volume* m_bounding_volume;
 	};
 public:
 	/* ctors and dtors methods */

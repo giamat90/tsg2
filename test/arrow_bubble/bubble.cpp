@@ -8,8 +8,6 @@ bubble::bubble() {
 	m_sprite = sprite::create_sprite();
 }
 
-
-
 void bubble::init() {
 	m_sprite->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\bubble.png")).string());
 	m_sprite->set_scale(0.5f);
@@ -19,10 +17,6 @@ void bubble::init() {
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
 	static std::uniform_real_distribution<scalar> dis(-1.0, 1.0);
-#if 0
-	auto b = geometry::box2D({ dis(gen), dis(gen) }, { scalar(w) / scalar(2), scalar(h) / scalar(2) });
-	set_bounding_volume(b);
-#else
 	static std::vector<geometry::box2D> boxes;
 	if(boxes.size() == 0) {
 		auto b = geometry::box2D({ dis(gen), dis(gen) }, geometry::vector2D({ scalar(w) / scalar(2), scalar(h) / scalar(2) }).get_scalarized(m_world->get_scale()));
@@ -55,7 +49,6 @@ void bubble::init() {
 			assert(0); // no position available
 		}
 	}
-#endif
 	tsg::logger::get_instance().write("Bubble start at ({},{})",
 		boxes.back().get_center().get<geometry::AXES::X>(),
 		boxes.back().get_center().get<geometry::AXES::Y>());
@@ -65,6 +58,5 @@ void bubble::init() {
 
 void bubble::update(const scalar delta_time) {
 	physical_object::update(delta_time);
-	m_sprite->set_where(texture::position({ m_position[geometry::AXES::X], m_position[geometry::AXES::Y]}));
-	m_sprite->set_rotation(m_rotation);
+	sprite_object::update(m_position, m_rotation);
 }

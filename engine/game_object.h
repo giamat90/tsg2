@@ -5,7 +5,10 @@
 #include "mesh.h"
 #include "geometry.h"
 
-
+/*
+* Pure virtual base class for all game objects
+* It shouldnt be inherited directly
+*/
 class TSG2_API game_object {
 public:
 	game_object();
@@ -13,6 +16,10 @@ public:
 	virtual void init() = 0;
 };
 
+/*
+* Drawable class base for all drawable game objects
+* It shouldnt be inherited directly
+*/
 class TSG2_API drawable : public game_object {
 public:
 	drawable();
@@ -34,13 +41,21 @@ protected:
 	texture* m_texture{ nullptr };
 };
 
+/*
+* Sprite object class, it is a drawable object with a sprite
+* It should be inherited by all sprite based game objects
+*/
 class TSG2_API sprite_object : public drawable {
+	using position = texture::position;
+	using angle = texture::angle;
 public:
 	sprite_object() = default;
-	virtual ~sprite_object() = default;
+	virtual ~sprite_object();
 public:
-	sprite* get_sprite() { return m_sprite; }
-	void set_sprite(sprite* s) { m_sprite = s; }
+	void update(const position&, const angle);
+public:
+	inline sprite* get_sprite() const { return m_sprite; }
+	inline void set_sprite(sprite* s) { m_sprite = s; }
 protected:
 	sprite* m_sprite{ nullptr };
 };

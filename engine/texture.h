@@ -9,8 +9,8 @@ using geometry::scalar;
 class TSG2_API texture {
 public:
 	using position = tsg::vector<scalar, 3>;
-	using angle = float;
-	using scale = float;
+	using angle = scalar;
+	using scale = scalar;
 public:
 	texture(int w = 0, int h = 0) : m_width(w), m_height(h) {};
 	virtual ~texture() = default;

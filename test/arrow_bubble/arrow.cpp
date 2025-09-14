@@ -29,9 +29,7 @@ void arrow::init() {
 
 void arrow::update(const scalar delta_time) {
 	physical_object::update(delta_time);
-	/* TODO: move to an hidden place */
-	m_sprite->set_where(texture::position({ m_position[geometry::AXES::X], m_position[geometry::AXES::Y]}));
-	m_sprite->set_rotation(m_rotation);
+	sprite_object::update(m_position, m_rotation);
 }
 
 
