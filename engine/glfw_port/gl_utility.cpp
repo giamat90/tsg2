@@ -1,7 +1,13 @@
+#ifdef GLFW_GAME 
+
 #include "gl_utility.h"
+#include "gl_includes.h"
+
+/* tsg includes */
 #include <tsg/io.h>		// print
 #include <tsg/logger.h> // logger
-#include "gl_includes.h"
+
+/* std includes */
 #include <cassert>
 
 #ifdef _DEBUG
@@ -13,5 +19,7 @@ void gl_check_error(const std::string& f, int r) {
 	}
 };
 #else
-void gl_check_error(const std::string& f, int r) {};
+void gl_check_error(const std::string& f, int r) { return; };
+#endif
+
 #endif

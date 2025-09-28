@@ -14,5 +14,5 @@ public:
 public:
 	GAME_EVENTS get_events() { return static_cast<GameEventImpl*>(this)->get_events(); };
 protected:
-	WindowImpl * m_window;
+	WindowImpl* m_window{ nullptr };
 };

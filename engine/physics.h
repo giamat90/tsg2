@@ -4,21 +4,19 @@
 #include "game_object.h"
 #include "contact.h"
 #include "geometry.h"
-// std
+// tsg includes
+#include <tsg/io.h>
+#include <tsg/types.h>
+// std includes
 #include <vector>
 #include <algorithm>
 #include <utility>
-// tsg
-#include <tsg/io.h>
-#include <tsg/types.h>
 
 using geometry::AXES;
 using geometry::scalar;
 using geometry::quaternion;
 using geometry::matrix3D;
 using geometry::bounding_volume;
-
-#define RESOLVE_INTERPENETRATION 0
 
 template <std::size_t Dim> requires geometry::GeometricDimension<Dim>
 class physics {
@@ -37,7 +35,7 @@ public:
 		physical_world() = default;
 		~physical_world() = default;
 	public:
-		void compute() {
+		inline void compute() {
 			if constexpr (Dim == 3) {
 				/* TODO */
 				assert(0);
@@ -65,6 +63,7 @@ public:
 							
 						}
 						wall_contact({ scalar(-1), scalar(0), scalar(0) });
+						return;
 					}
 					if (obj->m_box.get_max(AXES::Y) > m_limits.get_max(AXES::Y)) {
 						if (!obj->m_velocity.is_zero()) {
@@ -75,6 +74,7 @@ public:
 							
 						}
 						wall_contact({ scalar(0), scalar(-1), scalar(0) });
+						return;
 					}
 					if (obj->m_box.get_max(AXES::Z) > m_limits.get_max(AXES::Z)) {
 						/* Nothing to do for now */
@@ -85,22 +85,20 @@ public:
 							scalar dx = obj->get_bounding_volume()->get_min(AXES::X) - m_limits.get_min(AXES::X);
 							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
 							scalar dz{ dx * obj->m_velocity.get<AXES::Z>() / obj->m_velocity.get<AXES::X>() };
-							obj->translate({ -dx, -dy, -dz });
-							
+							obj->translate({ -dx, -dy, -dz });							
 						}
-
 						wall_contact({ scalar(1), scalar(0), scalar(0) });
+						return;
 					}
 					if (obj->m_box.get_min(AXES::Y) < m_limits.get_min(AXES::Y)) {
 						if (!obj->m_velocity.is_zero()) {
 							scalar dy = obj->get_bounding_volume()->get_min(AXES::Y) - m_limits.get_min(AXES::Y);
 							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
 							scalar dz{ dy * obj->m_velocity.get<AXES::Z>() / obj->m_velocity.get<AXES::Y>() };
-							obj->translate({ -dx, -dy, -dz });
-							
+							obj->translate({ -dx, -dy, -dz });							
 						}
-
 						wall_contact({ scalar(0), scalar(1), scalar(0) });
+						return;
 					}
 					if (obj->m_box.get_min(AXES::Z) < m_limits.get_min(AXES::Z)) {
 						if (!obj->m_velocity.is_zero()) {
@@ -111,6 +109,7 @@ public:
 							
 						}
 						wall_contact({ scalar(0), scalar(0), scalar(1) });
+						return;
 					}
 					/* Search contacts with next objects */
 					auto next_it = std::next(it);
@@ -199,7 +198,7 @@ public:
 		};
 		inline vector get_scale() const { return m_scale; }
 	protected:
-		void resolve_contact(physics::physical_object* const a, physics::physical_object* const b) {
+		inline void resolve_contact(physics::physical_object* const a, physics::physical_object* const b) {
 			scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
 			/* resolve velocity */
 			scalar separating_velocity{ vector::dot((a->m_velocity - b->m_velocity), m_contact_engine.get_normal()) };
@@ -234,7 +233,7 @@ public:
 		box m_limits;
 		vector m_scale;
 		vector m_forces;
-		contact_engine m_contact_engine{contact_engine::box_resolver::AABB};
+		contact_engine m_contact_engine;
 	};
 	/* physical_object to compute motion and collisions */
 	class physical_object {
@@ -247,10 +246,10 @@ public:
 			}
 		};
 	public:
-		void set_physical_world(physical_world* const world) { m_world = world; }
+		inline void set_physical_world(physical_world* const world) { m_world = world; }
 	public:
 		// updateable method overrides
-		virtual void update(const scalar delta_time) {
+		virtual inline void update(const scalar delta_time) {
 			if constexpr (Dim == 2) {
 				tsg::logger::get_instance().write("{}: p=({},{}), v=({},{}), a=({},{})", this,
 					m_position[geometry::AXES::X], m_position[geometry::AXES::Y],
@@ -284,11 +283,6 @@ public:
 			* TODO: check if it should be converted to deg
 			*/
 			m_rotation += (m_angular_speed * delta_time);
-#if TODO
-			quaternion delta_orientation{ 0, m_angular_velocity[AXES::X] * scalar(0.5), m_angular_velocity[AXES::Y] * scalar(0.5), m_angular_velocity[AXES::Z] * scalar(0.5) };
-			m_orientation += delta_orientation * m_orientation;
-			m_angular_velocity += m_angular_acceleration * delta_time;
-#endif
 			/*
 			* Check if something goes very wrong
 			*/
@@ -298,25 +292,19 @@ public:
 			}
 		};
 	public:
-		void translate(const point& t) {
+		inline void translate(const point& t) {
 			m_position.translate(t);
 			m_bounding_volume->translate(t);
 		}
-		void rotate(const scalar angle) {
+		inline void rotate(const scalar angle) {
 			m_rotation += angle;
 			m_bounding_volume.rotate(angle);
 		}
 	public:
-		/* 
-		*/
+		/* Bounding volume stuff */
 		template <geometry::bounding_volume::type T, typename ...Args>
-		void set_bounding_volume(Args... args) {
-			if constexpr (T == bounding_volume::type::box) {
-				/* old naive test
-				vector half_sizes = static_cast<box&>(bv).get_half_sizes();
-				half_sizes.scale(m_world->get_scale());
-				m_bounding_volume = box(static_cast<box&>(bv).get_center(), half_sizes);
-				*/
+		inline void set_bounding_volume(Args... args) {
+			if constexpr (T == bounding_volume::type::aabb || T == bounding_volume::type::obb) {
 				m_bounding_volume = new geometry::box<Dim>(args...);
 			}
 			else if constexpr (T == bounding_volume::type::sphere) {
@@ -340,7 +328,8 @@ public:
 				assert(false);
 			}
 		};
-		scalar get_mass() const { return scalar(1) / m_inverse_mass; }
+	public:
+		inline scalar get_mass() const { return scalar(1) / m_inverse_mass; }
 		inline void set_infinite_mass() { m_inverse_mass = scalar(0); }
 	protected:
 		inline void go_forward() { /* TODO */ assert(0); }
@@ -384,7 +373,10 @@ public:
 		m_world = new physical_world();
 	};
 	~physics() {
-		delete m_world;
+		if (m_world) {
+			delete m_world;
+			m_world = nullptr;
+		}
 	}
 public:
 	// set proprieties
@@ -402,7 +394,6 @@ public:
 		/* setting world limits */
 		m_world->m_limits.set_center(vector(scalar(0)));
 		m_world->m_limits.set_half_sizes(vector(scale));
-#if _DEBUG
 		tsg::logger::get_instance().write("World limits: ({},{},{},{}) with scale ({},{})", 
 			m_world->m_limits.get_center()[AXES::X] - m_world->m_limits.get_sizes()[AXES::X],
 			m_world->m_limits.get_center()[AXES::X] + m_world->m_limits.get_sizes()[AXES::X],
@@ -410,11 +401,10 @@ public:
 			m_world->m_limits.get_center()[AXES::Y] - m_world->m_limits.get_sizes()[AXES::Y],
 			m_world->m_scale[AXES::X],
 			m_world->m_scale[AXES::Y]);
-#endif
 	}
 public:
 	inline void update(const float delta_time) {
-		for (auto o : m_physical_object) {
+		for (auto o : m_world->m_objects) {
 			o->update(delta_time);
 		}
 		m_world->compute();
@@ -423,12 +413,9 @@ public:
 	// TODO: evalueate to made it private and friendable of game
 	inline void add_physical_object(physical_object* o) {
 		o->m_world = m_world;
-		// TODO: leave only once, it is a wasteful repetition
-		m_physical_object.push_back(o);
 		m_world->m_objects.push_back(o);
 	}
 protected:
 	physical_world* m_world{ nullptr };
-	std::vector<physical_object*> m_physical_object;
 };
 

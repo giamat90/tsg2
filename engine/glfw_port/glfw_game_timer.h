@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../tsg2.h"
+#include "tsg2.h"
 #include "game_timer.h"
-
 #include "gl_includes.h"
 
 class TSG2_API glfw_game_timer : public game_timer<glfw_game_timer>

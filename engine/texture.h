@@ -2,6 +2,8 @@
 
 #include "tsg2.h"
 #include "geometry.h"
+
+/* tsg includes */
 #include <tsg/types.h>
 
 using geometry::scalar;

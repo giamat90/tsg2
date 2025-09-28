@@ -1,17 +1,17 @@
 #pragma once
 
 #include "tsg2.h"
-#include "geometry.h"
 #include "color.h"
+/* tsg includes */
+#include <tsg/math.h>
+/* std includes */
 #include <string>
 
-using geometry::surface;
-
 class TSG2_API font {
-public:
+protected:
 	using text_position = tsg::vector<std::size_t, 2>;
 public:
-	font() {};
+	font() = default;
 	font(const std::string& s, const color& c, const text_position& p) : 
 		m_file_name(s), m_color(c), m_position(p) {};
 	virtual ~font() {};

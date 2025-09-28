@@ -11,5 +11,4 @@ public:
 	void set_fps(const unsigned fps) { m_fps = fps; };
 protected:
 	unsigned m_fps{};
-
 };

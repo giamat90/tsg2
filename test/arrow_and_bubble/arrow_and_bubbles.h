@@ -7,11 +7,11 @@
 #define NUMBER_OF_BUBBLE 10
 #define FORCE_INCLUDE_ARROW 1
 
-class triangle_game : public game<2, triangle_game>
+class arrow_and_bubbles : public game<2, arrow_and_bubbles>
 {
 public:
-	triangle_game(const std::string&, const unsigned, const unsigned, const unsigned);
-	~triangle_game();
+	arrow_and_bubbles(const std::string&, const unsigned, const unsigned, const unsigned);
+	~arrow_and_bubbles();
 public: // override public-methods
 	void initialize();
 	void run_game();

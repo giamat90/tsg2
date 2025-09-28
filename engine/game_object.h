@@ -11,8 +11,8 @@
 */
 class TSG2_API game_object {
 public:
-	game_object();
-	virtual ~game_object();
+	game_object() = default;
+	virtual ~game_object() = default;
 	virtual void init() = 0;
 };
 
@@ -22,14 +22,17 @@ public:
 */
 class TSG2_API drawable : public game_object {
 public:
-	drawable();
-	virtual ~drawable();
+	drawable() = default;
+	virtual ~drawable() = default;
 	void print_bounding_volume(const bool print = false) { m_has_bounding_volume = print; }
 	bool has_bounding_volume() const { return m_has_bounding_volume; }
 protected:
 	bool m_has_bounding_volume{ false };
 };
 
+/*
+* Texture object class, it is a drawable object with a texture
+*/
 class TSG2_API texture_object : public drawable {
 public:
 	texture_object() = default;
@@ -49,7 +52,7 @@ class TSG2_API sprite_object : public drawable {
 	using position = texture::position;
 	using angle = texture::angle;
 public:
-	sprite_object() = default;
+	sprite_object();
 	virtual ~sprite_object();
 public:
 	void update(const position&, const angle);
@@ -69,31 +72,6 @@ public:
 	void set_mesh(mesh* m) { m_mesh = m; }
 protected:
 	mesh* m_mesh{ nullptr };
-};
-
-class TSG2_API updateable : public game_object {
-public:
-	updateable();
-	virtual ~updateable();
-	virtual void update(const geometry::scalar delta_time) = 0;
-};
-
-class TSG2_API static_object : public drawable {
-public:
-	static_object();
-	virtual ~static_object();
-};
-
-class TSG2_API dynamic_object : public updateable, public drawable {
-public:
-	dynamic_object();
-	virtual ~dynamic_object();
-};
-
-class TSG2_API trigger_object : public updateable {
-public:
-	trigger_object();
-	virtual ~trigger_object();
 };
 
 

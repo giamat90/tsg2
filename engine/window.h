@@ -1,6 +1,8 @@
 #pragma once
 
 #include "tsg2.h"
+
+/* std includes */
 #include <exception>
 #include <string>
 
@@ -22,8 +24,8 @@ public:
 	window(const std::string& title = "", const width_t w = 0u, const height_t h = 0u) :
 		m_title(title), m_width(w), m_height(h) {}
 	virtual ~window() = default;	
-	height_t get_height() const { return m_height; }
-	width_t get_width() const { return m_width; }
+	inline height_t get_height() const { return m_height; }
+	inline width_t get_width() const { return m_width; }
 protected:
 	std::string m_title;
 	width_t m_width;

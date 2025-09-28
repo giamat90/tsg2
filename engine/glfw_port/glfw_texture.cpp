@@ -1,8 +1,11 @@
+#ifdef GLFW_GAME 
+
 #include "glfw_texture.h"
-#include "glfw_converter.h"
+#include "gl_utility.h" // gl_check_error
+
+/* tsg includes */
 #include <tsg/logger.h>
 #include <tsg/io.h>         // print
-#include "gl_utility.h" // gl_check_error
 
 texture* texture::create_texture() {
 	return new glfw_texture();
@@ -38,3 +41,5 @@ void glfw_texture::set_active() {
     glBindTexture(GL_TEXTURE_2D, *get_adaptee());
     gl_check_error(__FILE__, __LINE__);
 }
+
+#endif

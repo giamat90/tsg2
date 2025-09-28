@@ -1,12 +1,15 @@
-#include "../input.h"
+#ifdef GLFW_GAME 
+
+#include "input.h"
 #include "glfw_input.h"
-#include <map>
-#include "gl_utility.h" // gl_check_error
-#include <cassert>
 #include "gl_includes.h"
+#include "gl_utility.h" // gl_check_error
 
+/* std inlcudes */
+#include <cassert>
+#include <map>
 
-static std::map<INPUT_KEY, int> m_keyboard_glfw_mapping{
+static const std::map<INPUT_KEY, int> g_keyboard_glfw_mapping{
 	{ INPUT_KEY::KEY_ESC, GLFW_KEY_ESCAPE},
 	{ INPUT_KEY::KEY_RET, GLFW_KEY_ENTER },
 	{ INPUT_KEY::KEY_LCTRL, GLFW_KEY_LEFT_CONTROL },
@@ -54,13 +57,7 @@ glfw_input::~glfw_input(){}
 
 // overloaded methods
 bool glfw_input::is_key_pressed(const INPUT_KEY key) {
-	//bool res{ false };
-	//if (auto w = dynamic_cast<glfw_window*>(m_window))
-	//{
-	//	res = glfwGetKey(w->get_adaptee(), m_keyboard_glfw_mapping[key]) == GLFW_PRESS;
-	//	gl_check_error();
-	//}
-	bool res = glfwGetKey(m_window->get_adaptee(), m_keyboard_glfw_mapping[key]) == GLFW_PRESS;
+	const bool res{ glfwGetKey(m_window->get_adaptee(),g_keyboard_glfw_mapping.at(key)) == GLFW_PRESS };
 	gl_check_error();
 	return res;
 };
@@ -80,3 +77,5 @@ bool glfw_input::is_mouse_released(const INPUT_MOUSE side) {
 	assert(false);
 	return false;
 }
+
+#endif

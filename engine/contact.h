@@ -2,7 +2,6 @@
 
 #include "geometry.h"
 // std
-#include <variant>
 #include <map>
 #include <functional>
 
@@ -11,6 +10,9 @@ using geometry::AXES;
 
 template <std::size_t Dim> requires geometry::GeometricDimension<Dim>
 class contact_engine {
+	using resolve_map_t = std::map<
+		std::pair<geometry::bounding_volume::type, geometry::bounding_volume::type>,
+		std::function<void(geometry::bounding_volume&, geometry::bounding_volume&)>>;
 	using vector = tsg::vector<scalar, Dim>;
 	using point = tsg::vector<scalar, Dim>;
 	using box = geometry::box<Dim>;
@@ -23,18 +25,12 @@ class contact_engine {
 		scalar m_penetration{};
 	};
 public:
-	enum class box_resolver {
-		AABB,
-		OBB,
-		UNKNOW
-	};
-public:
-	contact_engine(const box_resolver t = box_resolver::UNKNOW) : m_box_resolver(t) {};
+	contact_engine() = default;
 	~contact_engine() = default;
 public:
 	bool resolve(geometry::bounding_volume * const first, geometry::bounding_volume * const second) {
-		const auto it = m_resolve_type_map.find(std::make_pair(first->get_type(), second->get_type()));
-		if (it != m_resolve_type_map.end()) {
+		const auto it = m_resolve_map.find(std::make_pair(first->get_type(), second->get_type()));
+		if (it != m_resolve_map.end()) {
 			it->second(*first, *second);
 		}
 		else {
@@ -51,22 +47,6 @@ public:
 	inline scalar get_penetration() const { return m_contact.m_penetration; }
 	inline vector get_penetration_vector() const { return m_contact.m_penetration_vector; }
 protected:
-	void compute(const box& first, const box& second) {
-		/* AABB test */
-		switch (m_box_resolver)
-		{
-		case(box_resolver::AABB):
-			computeAABB(first, second);
-			break;
-		case(box_resolver::OBB):
-			computeOBB(first, second);
-			break;
-		default:
-			/* unknown box resolver */
-			assert(0); 
-			break;
-		}
-	}
 	void compute(const box& fisrt, const sphere& second){
 		/* TODO */
 		assert(0);
@@ -227,20 +207,36 @@ protected:
 			assert(0);
 		}
 	}
+	void computeAABBOBB(const box& a, const box& b) {
+		assert(0); // TODO
+	}
 private:
-	box_resolver m_box_resolver{ box_resolver::UNKNOW };
 	bool m_has_contact{ false };
 	contact_t m_contact;
-	std::map< 
-		std::pair<geometry::bounding_volume::type, geometry::bounding_volume::type>, 
-		std::function<void(geometry::bounding_volume&, geometry::bounding_volume&)>> m_resolve_type_map
+	const resolve_map_t m_resolve_map
 	{
 		{
-			{geometry::bounding_volume::type::box, geometry::bounding_volume::type::box},
-			[&](geometry::bounding_volume& l, geometry::bounding_volume& r) -> void { compute(static_cast<box&>(l), static_cast<box&>(r)); }
+			{geometry::bounding_volume::type::aabb, geometry::bounding_volume::type::aabb},
+			[&](geometry::bounding_volume& l, geometry::bounding_volume& r) -> void { computeAABB(static_cast<box&>(l), static_cast<box&>(r)); }
 		},
 		{
-			{geometry::bounding_volume::type::box, geometry::bounding_volume::type::sphere},
+			{geometry::bounding_volume::type::obb, geometry::bounding_volume::type::obb},
+			[&](geometry::bounding_volume& l, geometry::bounding_volume& r) -> void { computeOBB(static_cast<box&>(l), static_cast<box&>(r)); }
+		},
+		{
+			{geometry::bounding_volume::type::aabb, geometry::bounding_volume::type::obb},
+			[&](geometry::bounding_volume& l, geometry::bounding_volume& r) -> void { computeAABBOBB(static_cast<box&>(l), static_cast<box&>(r)); }
+		},
+		{
+			{geometry::bounding_volume::type::obb, geometry::bounding_volume::type::aabb},
+			[&](geometry::bounding_volume& l, geometry::bounding_volume& r) -> void { computeAABBOBB(static_cast<box&>(r), static_cast<box&>(l)); }
+		},
+		{
+			{geometry::bounding_volume::type::aabb, geometry::bounding_volume::type::sphere},
+			[&](geometry::bounding_volume& l, geometry::bounding_volume& r) -> void { compute(static_cast<box&>(l), static_cast<sphere&>(r)); }
+		},
+		{
+			{geometry::bounding_volume::type::obb, geometry::bounding_volume::type::sphere},
 			[&](geometry::bounding_volume& l, geometry::bounding_volume& r) -> void { compute(static_cast<box&>(l), static_cast<sphere&>(r)); }
 		},
 		{

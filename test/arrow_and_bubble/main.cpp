@@ -4,10 +4,10 @@
 int main() {
 	tsg::print("Arrow and Bubbles start");
 	try {
-		triangle_game t("Arrow and Bubbles.exe", 1024, 768, 60);
-		t.initialize();
-		t.run_game();
-		t.shutdown();
+		arrow_and_bubbles g("Arrow and Bubbles.exe", 1024, 768, 60);
+		g.initialize();
+		g.run_game();
+		g.shutdown();
 	}
 	catch (std::exception& e) {
 		tsg::print(e.what());

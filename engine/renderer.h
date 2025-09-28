@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tsg2.h"
-#include <exception>
 #include "geometry.h"
 #include "sprite.h"
 #include "texture.h"
@@ -9,8 +8,11 @@
 #include "font.h"
 #include "asset.h"
 #include "game_object.h"	// drawable
-#include <vector>
 #include "renderer_geometry.h"
+
+/* std includes */
+#include <exception>
+#include <vector>
 
 template <typename WindowImpl, typename RendererImpl>
 class renderer {
@@ -32,17 +34,17 @@ public:
 		}
 	};
 public: 
-	void render() { static_cast<RendererImpl*>(this)->render(); };
-	void clear() { static_cast<RendererImpl*>(this)->clear(); };
-	void set_draw_color(const color& c) { static_cast<RendererImpl*>(this)->set_draw_color(c); };
-	void draw(sprite* s) { static_cast<RendererImpl*>(this)->draw(s); };
-	void draw(texture* t) { static_cast<RendererImpl*>(this)->draw(t); };	
-	void draw(mesh* m) { static_cast<RendererImpl*>(this)->draw(m); };
-	void draw(font* f) { static_cast<RendererImpl*>(this)->draw(f); };
-	void draw(geometry::bounding_volume* bv) { static_cast<RendererImpl*>(this)->draw(bv); };
-	void draw(const geometry::box3D& b) { static_cast<RendererImpl*>(this)->draw(b); };
-	void draw(const geometry::box2D& b) { static_cast<RendererImpl*>(this)->draw(b); };
-	void draw(const drawable_bounding_volume& bdv) { static_cast<RendererImpl*>(this)->draw(bdv); };
+	inline void render() { static_cast<RendererImpl*>(this)->render(); };
+	inline void clear() { static_cast<RendererImpl*>(this)->clear(); };
+	inline void set_draw_color(const color& c) { static_cast<RendererImpl*>(this)->set_draw_color(c); };
+	inline void draw(sprite* s) { static_cast<RendererImpl*>(this)->draw(s); };
+	inline void draw(texture* t) { static_cast<RendererImpl*>(this)->draw(t); };	
+	inline void draw(mesh* m) { static_cast<RendererImpl*>(this)->draw(m); };
+	inline void draw(font* f) { static_cast<RendererImpl*>(this)->draw(f); };
+	inline void draw(geometry::bounding_volume* bv) { static_cast<RendererImpl*>(this)->draw(bv); };
+	inline void draw(const geometry::box3D& b) { static_cast<RendererImpl*>(this)->draw(b); };
+	inline void draw(const geometry::box2D& b) { static_cast<RendererImpl*>(this)->draw(b); };
+	inline void draw(const drawable_bounding_volume& bdv) { static_cast<RendererImpl*>(this)->draw(bdv); };
 	inline void render_bounding_volumes() {
 		m_bounding_volume_rendering = true;
 	}
@@ -69,8 +71,7 @@ public:
 	inline void add_bounding_volume(geometry::bounding_volume* bv, const scalar scale) {
 		assert(bv);
 		drawable_bounding_volume* p_bdv = new drawable_bounding_volume(bv, scale);
-		m_bv_obj.push_back(p_bdv);
-		//m_bv_obj.emplace_back(bv);
+		m_bv_obj.emplace_back(p_bdv);
 	}
 protected:
 	WindowImpl* m_window;

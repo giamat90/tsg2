@@ -5,8 +5,8 @@ project(tsg2)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Option to enable/disable SDL
-option(USE_SDL "Enable SDL3 support" OFF)
-option(USE_GLFW "Enable GLFW support" ON)
+option(SDL_GAME "Enable SDL3 support" OFF)
+option(GLFW_GAME "Enable GLFW support" ON)
 
 # Set output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

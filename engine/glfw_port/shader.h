@@ -1,8 +1,12 @@
 #pragma once
 
-#include <tsg/types.h>
-#include <filesystem>
 #include "gl_includes.h"
+
+/* tsg includes */
+#include <tsg/types.h>
+
+/* std includes */
+#include <filesystem>
 
 class shader : public tsg::adapter_v<GLuint>{
 public:

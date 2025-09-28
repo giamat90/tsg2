@@ -1,5 +1,6 @@
 #pragma once
 
+/* tsg2 includes */
 #include "tsg2.h"
 #include "input.h"
 #include "input_object.h"
@@ -7,28 +8,22 @@
 #include "texture.h"
 #include "physics.h"
 #include "game_event.h"
+
+/* tsg includes */
 #include <tsg/types.h>
 
-#ifdef USE_GLFW
-#include "glfw_port/glfw_game.h"
-#include "glfw_port/glfw_renderer.h"
-#include "glfw_port/glfw_game_timer.h"
-#include "glfw_port/glfw_input.h"
-#include "glfw_port/glfw_window.h"
-#include "glfw_port/glfw_event.h"
-
-using window_impl = glfw_window;
-using renderer_impl = glfw_renderer;
-using input_impl = glfw_input;
-using game_event_impl = glfw_event;
-using game_timer_impl = glfw_game_timer;
-
-template <size_t Dim, typename GameImpl, typename GraphicImpl = glfw_game>
+/* Graphic impl includes */
+#ifdef GLFW_GAME
+#include "glfw_port/glfw_port.h"
 #elifdef VULKAN_GAME
 /* TODO */
+#include "vulkan_port/vulkan_port.h"
 #elifdef GLES_GAME
 /* TODO */
+#include "gles_port/gles_port.h"
 #endif
+
+template <size_t Dim, typename GameImpl, typename GraphicImpl = graphic_impl >
 class game : public tsg::non_copyable, public GraphicImpl
 {
 	using physics = physics<Dim>;
@@ -76,6 +71,5 @@ protected: // attributes
 	game_event_impl m_event;
 	game_timer_impl m_timer;
 	physics m_physics;
-
 };
 

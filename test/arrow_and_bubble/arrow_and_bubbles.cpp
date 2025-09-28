@@ -1,9 +1,8 @@
 #include "arrow_and_bubbles.h"
+#include "game_event.h"
+#include <tsg/logger.h>
 #include <tsg/io.h>
 #include <tsg/os.h>
-#include "game_event.h"
-
-#include <tsg/logger.h>
 
 #define EXCLUDE_BOUNDING_VOLUME 1
 
@@ -31,23 +30,23 @@
 #endif
 
 
-triangle_game::triangle_game(const std::string& window_text, const unsigned h, const unsigned w, const unsigned fps) :
+arrow_and_bubbles::arrow_and_bubbles(const std::string& window_text, const unsigned h, const unsigned w, const unsigned fps) :
 	game(window_text, h, w, fps)
 {
-	tsg::logger::get_instance().write("triangle ctor");
+	tsg::logger::get_instance().write("arrow_and_bubbles ctor");
 }
 
-triangle_game::~triangle_game() {
-	tsg::logger::get_instance().write("triangle dtor");
+arrow_and_bubbles::~arrow_and_bubbles() {
+	tsg::logger::get_instance().write("arrow_and_bubbles dtor");
 }
 
-void triangle_game::initialize() {
+void arrow_and_bubbles::initialize() {
 	create_physics();
 	initialize_objects();
 	m_state = GAME_STATE::RUNNING;
 }
 
-void triangle_game::run_game() {
+void arrow_and_bubbles::run_game() {
 	while (GAME_STATE::RUNNING == m_state) {
 		process_input();
 		update_game();
@@ -55,23 +54,21 @@ void triangle_game::run_game() {
 	}
 }
 
-void triangle_game::shutdown() {
+void arrow_and_bubbles::shutdown() {
 	quit();
 }
 
-void triangle_game::create_physics() {
-	/* TODO */
+void arrow_and_bubbles::create_physics() {
+	/* TODO: improve scale handling */
 	geometry::scalar scale = 2.0f;
 	m_physics.set_limits({ scalar(m_window.get_width()), scalar(m_window.get_height()) }, scale);
 }
 
-void triangle_game::initialize_objects() {
-	/* ToDo */
+void arrow_and_bubbles::initialize_objects() {
 	// input engine stuff
 	INCLUDE_ARROW(add_playable(&m_arrow));
 	// physic engine stuff
 	INCLUDE_ARROW(add_physical_object(&m_arrow));
-	// render engine stuff
 	/* initialize objects */
 	INCLUDE_BOUNDING_VOLUME(m_arrow.print_bounding_volume(true));
 	INCLUDE_ARROW(add_drawable(&m_arrow));
@@ -85,18 +82,18 @@ void triangle_game::initialize_objects() {
 	}
 }
 
-void triangle_game::process_input() {
+void arrow_and_bubbles::process_input() {
 	if( GAME_EVENTS::QUIT == get_event()) {
 		m_state = GAME_STATE::SHUT_DOWN;
 	}
 	m_input.process_input();
 };
 
-void triangle_game::update_game() {
+void arrow_and_bubbles::update_game() {
 	auto tick = m_timer.tick();
 	m_physics.update(tick);
 }
 
-void triangle_game::generate_output() {
+void arrow_and_bubbles::generate_output() {
 	m_renderer.render();
 }

@@ -1,3 +1,5 @@
+#ifdef GLFW_GAME 
+
 #include "glfw_renderer.h"
 #include "glfw_texture.h"
 #include "glfw_sprite.h"
@@ -5,15 +7,19 @@
 #include "glfw_mesh.h"
 #endif
 #include "glfw_font.h"
-#include "../geometry.h"
+#include "gl_utility.h"	// gl_check_error
+#include "geometry.h"
+
+/* tsg includes */
 #include <tsg/logger.h>
 #include <tsg/io.h>	// print
+
+/* glm includes */
 #include <linmath.h>	// mat4x4
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "gl_utility.h"	// gl_check_error
 
 using geometry::AXES;
 
@@ -194,7 +200,8 @@ void glfw_renderer::draw(font* f) {
 void glfw_renderer::draw(geometry::bounding_volume* bv) {
 	switch (bv->get_type())
 	{
-	case geometry::bounding_volume::type::box:
+	case geometry::bounding_volume::type::aabb:
+	case geometry::bounding_volume::type::obb:
 		if(bv->get_dimension() == 3) {
 			draw(static_cast<geometry::box3D&>(*bv));
 		}
@@ -386,3 +393,5 @@ void glfw_renderer::draw(const geometry::box2D& box) {
 void glfw_renderer::draw(const drawable_bounding_volume&) {
 	assert(0);
 }
+
+#endif

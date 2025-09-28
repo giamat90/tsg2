@@ -2,6 +2,8 @@
 
 #include "tsg2.h"
 #include "input_object.h"
+
+/* std includes */
 #include <vector>
 
 enum class INPUT_TYPE {
@@ -63,6 +65,7 @@ public:
 	input_engine() = default;
 	virtual ~input_engine() = default;
 public:
+	// keyboard
 	virtual bool is_key_pressed(const INPUT_KEY key) = 0;
 	// mouse
 	virtual bool is_mouse_clicked(const INPUT_MOUSE side) = 0;
@@ -76,7 +79,7 @@ public:
 	input(WindowImpl * w) : input_engine(), m_window(w) {};
 	virtual ~input() = default;
 public:
-	void process_input() {
+	inline void process_input() {
 		for (auto p : m_playables) {			
 			p->process_input(this);
 		}

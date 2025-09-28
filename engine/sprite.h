@@ -2,6 +2,8 @@
 
 #include "tsg2.h"
 #include "texture.h"
+
+/* std includes */
 #include <string>
 
 class TSG2_API sprite : public virtual texture {

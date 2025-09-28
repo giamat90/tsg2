@@ -1,5 +1,9 @@
+#ifdef GLFW_GAME 
+
 #include "vertex.h"
 #include "gl_utility.h"
+
+/* std includes */
 #include <cassert>
 
 /* sprite impl */
@@ -88,3 +92,5 @@ void box2D_vertex::use() {
 	glBindVertexArray(m_adaptee);
 	gl_check_error(__FILE__, __LINE__);
 }
+
+#endif

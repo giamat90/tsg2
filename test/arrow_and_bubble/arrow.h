@@ -1,17 +1,14 @@
 #pragma once
 
-#include <game_object.h>
-#include <input_object.h>
-#include <input.h>
-
-#include <physics.h>
+#include <game_object.h>	// sprite_object
+#include <input.h>			// playable_object
+#include <physics.h>		// physical_object
 
 class arrow : public sprite_object, public playable_object, public physics<2>::physical_object {
 public:
 	arrow();
 	~arrow() = default;
 public:
-	// dynamic_object overrides
 	void init() override;
 	void update(const scalar delta_time) override;
 public:

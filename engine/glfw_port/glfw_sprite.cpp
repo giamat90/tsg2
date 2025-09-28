@@ -1,9 +1,14 @@
+#ifdef GLFW_GAME 
+
 #include "glfw_sprite.h"
+#include "gl_utility.h" // gl_check_error
+
+/* tsg includes */
 #include <tsg/logger.h>
 #include <tsg/io.h>         // print
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>      // stbi_load
-#include "gl_utility.h" // gl_check_error
 
 sprite* sprite::create_sprite() {
     return new glfw_sprite();
@@ -59,3 +64,5 @@ void glfw_sprite::unload() {
         m_height = 0;
     }
 }
+
+#endif

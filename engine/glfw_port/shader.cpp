@@ -1,8 +1,12 @@
+#ifdef GLFW_GAME 
+
 #include "shader.h"
+#include "gl_utility.h" // gl_check_error
+
+/* std includes */
 #include <fstream>	// ifstream
 #include <sstream>	// stringstream
 #include <tsg/io.h>	// print
-#include "gl_utility.h" // gl_check_error
 
 shader::shader(const char* vertex_path, const char* fragment_path) {
 	init(vertex_path, fragment_path);
@@ -79,3 +83,5 @@ void shader::use() {
 	glUseProgram(m_adaptee);
 	gl_check_error(__FILE__, __LINE__);
 }
+
+#endif

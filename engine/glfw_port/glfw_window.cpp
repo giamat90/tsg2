@@ -1,9 +1,15 @@
+#ifdef GLFW_GAME 
+
 #include "glfw_window.h"
+#include "gl_includes.h"
+#include "gl_utility.h"
+
+/* tsg includes */
 #include <tsg/logger.h>
 #include <tsg/types.h>
 #include <tsg/io.h>
-#include "gl_includes.h"
-#include "gl_utility.h"
+
+/* std includes */
 #include <cassert>
 
 static void resize_window_callback(GLFWwindow* window, int width, int height) {
@@ -31,5 +37,7 @@ glfw_window::~glfw_window() {
 	// or maybe I should?
 	glfwDestroyWindow(m_adaptee);
 }
+
+#endif
 
 

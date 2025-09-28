@@ -1,10 +1,12 @@
 #pragma once
 
-#include <tsg/types.h>
 #include "glfw_adaptor.h"
-#include "../texture.h"
-#include "../asset.h"
+#include "texture.h"
+#include "asset.h"
 #include "gl_includes.h"
+
+/* tsg includes */
+#include <tsg/types.h>
 
 class TSG2_API glfw_texture : public virtual texture, public tsg::adapter_v<GLuint>
 {

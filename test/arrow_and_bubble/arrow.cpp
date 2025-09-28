@@ -5,9 +5,7 @@
 using geometry::scalar;
 using geometry::cos;
 
-arrow::arrow() {
-	m_sprite = sprite::create_sprite();
-}
+arrow::arrow() : sprite_object(), physics<2>::physical_object() {}
 
 void arrow::init() {
 	m_sprite->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\arrow.png")).string());
@@ -17,7 +15,7 @@ void arrow::init() {
 	auto h = m_sprite->get_size().get<geometry::AXES::Y>();
 	geometry::vector2D half_sizes{ w / scalar(2), h / scalar(2) };
 	half_sizes.scale(m_world->get_scale());
-	set_bounding_volume<geometry::bounding_volume::type::box>(m_position, half_sizes);
+	set_bounding_volume<geometry::bounding_volume::type::aabb>(m_position, half_sizes);
 	set_mass(scalar(1));
 }
 

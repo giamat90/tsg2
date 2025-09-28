@@ -1,4 +1,4 @@
-#if USE_GLFW
+#if GLFW_GAME
 
 #include "glfw_event.h"
 #include "glfw_window.h"

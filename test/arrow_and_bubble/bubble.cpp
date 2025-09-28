@@ -5,9 +5,7 @@
 #include <physics.h>
 #include <contact.h>
 
-bubble::bubble() {
-	m_sprite = sprite::create_sprite();
-}
+bubble::bubble() : sprite_object(), physics<2>::physical_object() {}
 
 void bubble::init() {
 	m_sprite->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\bubble.png")).string());
@@ -22,7 +20,7 @@ void bubble::init() {
 	if(boxes.size() == 0) {
 		auto b = geometry::box2D({ dis(gen), dis(gen) }, geometry::vector2D({ scalar(w) / scalar(2), scalar(h) / scalar(2) }).get_scalarized(m_world->get_scale()));
 		boxes.emplace_back(b);
-		set_bounding_volume<bounding_volume::type::box>(b.get_center(), b.get_half_sizes());
+		set_bounding_volume<bounding_volume::type::aabb>(b.get_center(), b.get_half_sizes());
 	}
 	else {
 		bool pos_available{ false };
@@ -34,13 +32,13 @@ void bubble::init() {
 			class contact_friend : public contact_engine<2> {				
 				friend bubble;
 			};
-			contact_friend engine(contact_engine<2>::box_resolver::AABB);
+			contact_friend engine;
 			for (auto box : boxes) {
 				engine.computeAABB(box, candidate_box);
 				pos_available = !engine.has_contact();
 			}
 			if(pos_available) {
-				set_bounding_volume<bounding_volume::type::box>(candidate_box.get_center(), candidate_box.get_half_sizes());
+				set_bounding_volume<bounding_volume::type::aabb>(candidate_box.get_center(), candidate_box.get_half_sizes());
 				boxes.emplace_back(candidate_box);
 			}
 		}

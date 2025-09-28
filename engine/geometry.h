@@ -1,9 +1,12 @@
 #pragma once
 
 #include "tsg2.h"
-#include <tsg/io.h>
+
+/* tsg includes */
 #include <tsg/math.h>
 #include <tsg/logger.h>
+
+/* std includes */
 #include <initializer_list>
 #include <cassert>
 #include <cmath>
@@ -93,7 +96,6 @@ namespace geometry {
 	constexpr scalar pi{ std::numbers::pi_v<float> };
 	constexpr scalar nan{ std::numeric_limits<float>::quiet_NaN() };
 #endif
-
 	using point2D = tsg::vector<scalar, 2>;
 	using point3D = tsg::vector<scalar, 3>;
 	using vector2D = tsg::vector<scalar, 2>;
@@ -102,117 +104,27 @@ namespace geometry {
 	/*
 	* Quaternion class for orientation rappresentation
 	*/
-	class quaternion {
+	class TSG2_API quaternion {
 	public:
-		quaternion(const scalar w = scalar(1), const scalar i = scalar(0), const scalar j = scalar(0), const scalar k = scalar(0)) :
-			m_w(w), m_i(i), m_j(j), m_k(k) {};
-		quaternion(const tsg::vector<scalar, 3>& vec) :
-			m_w(scalar(0)), m_i(vec[AXES::X]), m_j(vec[AXES::Y]), m_k(vec[AXES::Z]) {};
-		inline void normalize() {
-			scalar d = m_w * m_w + m_i * m_i + m_j * m_j + m_k * m_k;
-
-			// Check for zero length quaternion, and use the no-rotation
-			// quaternion in that case.
-			if (d < epsilon) {
-				m_w = 1;
-			}
-			else {
-				d = scalar(1) / sqrt(d);  //((real)1.0) / real_sqrt(d);
-				m_w *= d;
-				m_i *= d;
-				m_j *= d;
-				m_k *= d;
-			}
-		}
-		inline quaternion& operator *=(const quaternion& other)
-		{
-			m_w = m_w * other.m_w - m_i * other.m_i - m_j * other.m_j - m_k * other.m_k;
-			m_i = m_w * other.m_i + m_i * other.m_w + m_j * other.m_k - m_k * other.m_j;
-			m_j = m_w * other.m_j + m_j * other.m_w + m_k * other.m_i - m_i * other.m_k;
-			m_k = m_w * other.m_k + m_k * other.m_w + m_i * other.m_j - m_j * other.m_i;
-			return *this;
-		}
-
+		quaternion(const scalar w = scalar(1), const scalar i = scalar(0), const scalar j = scalar(0), const scalar k = scalar(0));
+		quaternion(const tsg::vector<scalar, 3>& vec);
+		void normalize();
+		quaternion& operator *=(const quaternion& other);
 		inline friend quaternion& operator*(quaternion& lhs, const quaternion& rhs) {
 			return lhs *= rhs;
-		}
-
-		inline quaternion& operator+=(const quaternion& other)
-		{
-			quaternion retVal;
-			/*
-			// Vector component is:
-			// ps * qv + qs * pv + pv x qv
-			Vector3 qv(q.x, q.y, q.z);
-			Vector3 pv(p.x, p.y, p.z);
-			Vector3 newVec = p.w * qv + q.w * pv + Vector3::Cross(pv, qv);
-			retVal.x = newVec.x;
-			retVal.y = newVec.y;
-			retVal.z = newVec.z;
-
-			// Scalar component is:
-			// ps * qs - pv . qv
-			retVal.w = p.w * q.w - Vector3::Dot(pv, qv);
-
-			return retVal;
-			*/
-
-			// Vector component is:
-			// ps * qv + qs * pv + pv x qv
-			vector3D pv({m_i, m_j, m_k });
-			vector3D qv({ other.m_i, other.m_j, other.m_k });
-			vector3D newVec = m_w * qv + other.m_w * pv + vector3D::cross(pv, qv);
-			this->m_i = newVec[AXES::X];
-			this->m_j = newVec[AXES::Y];
-			this->m_k = newVec[AXES::Z];
-
-			// Scalar component is:
-			// ps * qs - pv . qv
-			this->m_w = m_w * other.m_w - vector3D::dot(pv, qv);
-
-			return *this;
-		}
-
-		inline friend quaternion& operator+(quaternion& lhs, const quaternion& rhs)
-		{
+		};
+		quaternion& operator+=(const quaternion& other);
+		inline friend quaternion& operator+(quaternion& lhs, const quaternion& rhs) {
 			return lhs += rhs;
-		}
-
-		inline quaternion& operator+=(const tsg::vector<scalar, 3>& vector)
-		{
-			quaternion q(vector);
-			q *= *this;
-			m_w += q.m_w * scalar(0.5);
-			m_i += q.m_i * scalar(0.5);
-			m_j += q.m_j * scalar(0.5);
-			m_k += q.m_k * scalar(0.5);
-			return *this;
-		}
-		inline quaternion& rotate(const tsg::vector<scalar, 3>& vector) {
-			(*this) *= quaternion(vector);
-			return *this;
-		}
+		};
+		quaternion& operator+=(const tsg::vector<scalar, 3>& vector);
+		quaternion& rotate(const tsg::vector<scalar, 3>& vector);
 	private:
 		scalar m_w{};
 		scalar m_i{};
 		scalar m_j{};
 		scalar m_k{};
 	};
-
-	class shape {
-	public:
-		enum class TYPE {
-			NONE,
-			RECTANGLE,
-			SPHERE,
-			CIRCLE,
-			ELIPSE,
-			PLANE
-		};
-	protected:
-		TYPE m_type{ TYPE::NONE };
-	};
-
 	
 	/*
 	* class to compute a finite line in 3D space
@@ -225,10 +137,10 @@ namespace geometry {
 	public:
 		segment() = default;
 		virtual ~segment() = default;
-		segment(const point& start, const point& end) :
+		segment(const point& start, const point& end) noexcept :
 			m_start(start), m_end(end), m_vector((end - start).get_normalized()), m_lenght((end - start).get_norm()) {
 		};
-		segment(const segment& other) :
+		segment(const segment& other) noexcept :
 			m_start(other.m_start), m_end(other.m_end), m_lenght(other.m_lenght), m_vector(other.m_vector) {
 		};
 	public:
@@ -341,11 +253,11 @@ namespace geometry {
 		using vector = tsg::vector<scalar, Dim>;
 	public:
 		finite_plane() = default;
-		finite_plane(const point& c) : m_center(c) {}
+		finite_plane(const point& c) noexcept : m_center(c) {}
 		virtual ~finite_plane() = default;
 	public:
-		vector get_normal() const { return m_normal; };
-		point get_center() const { return m_center; };
+		inline vector get_normal() const { return m_normal; };
+		inline point get_center() const { return m_center; };
 	public:
 		inline vector3D project(const point& p) {
 			return p - m_normal * vector::dot(m_normal, p - m_center);
@@ -363,28 +275,25 @@ namespace geometry {
 		vector2D m_half_sizes{};
 	};
 
-	class bounding_volume {
+	class TSG2_API bounding_volume {
 	public:
 		enum class type {
-			box,
+			aabb,	// axes aligned bounding box
+			obb,	// oriented bounding box
 			sphere,
 			polygon,
 			unknown
 		};
 	public:
-		bounding_volume(const type t = type::unknown, const std::size_t d = 0u) : m_type(t), m_dimension(d) {};
+		bounding_volume(const type t = type::unknown, const std::size_t d = 0u);
 		virtual ~bounding_volume() = default;
-		const type get_type() const { return m_type; };
-		const std::size_t get_dimension() const { return m_dimension; };
+		inline const type get_type() const { return m_type; };
+		inline const std::size_t get_dimension() const { return m_dimension; };
 	public:
-		virtual void translate(const tsg::vector<scalar, 2>& pos) {
-			/* can't be pure virtual because of it depends ont the dimension... */
-			assert(0); // not implemented
-		};
-		virtual void translate(const tsg::vector<scalar, 3>& pos) {
-			/* can't be pure virtual because of it depends ont the dimension... */
-			assert(0); // not implemented
-		};
+		virtual void translate(const tsg::vector<scalar, 2>& pos);
+		virtual void translate(const tsg::vector<scalar, 3>& pos);
+	public:
+		/* pure virtual */
 		virtual void rotate(const scalar angle) = 0;
 		inline virtual scalar get_min(const std::size_t axes) const = 0;
 		inline virtual scalar get_max(const std::size_t axes) const = 0;
@@ -392,9 +301,10 @@ namespace geometry {
 		type m_type{ type::unknown };
 		std::size_t m_dimension{};
 	};
+
 	/*
 	* The box has validity only for 2 or 3 dimension (as per now). 
-	* Then the concept.
+	* This giustify the concept.
 	*/
 	template <std::size_t Dim> requires GeometricDimension<Dim>
 	class box : public bounding_volume {
@@ -408,14 +318,14 @@ namespace geometry {
 		using edges = std::array<edge, Dim == 3 ? 12 : 4>;
 		using faces = std::array<face, Dim == 3 ? 6 : 1>;
 	public:
-		box() : bounding_volume(type::box, Dim), m_center(), m_half_sizes() {};
-		box(const tsg::vector<scalar, Dim>& center, const tsg::vector<scalar, Dim>& half_sizes) :
-			bounding_volume(type::box, Dim), m_center(center), m_half_sizes(half_sizes)
+		box(const type t = type::aabb) : bounding_volume(t, Dim), m_center(), m_half_sizes() {};
+		box(const tsg::vector<scalar, Dim>& center, const tsg::vector<scalar, Dim>& half_sizes, const type t = type::aabb) :
+			bounding_volume(t, Dim), m_center(center), m_half_sizes(half_sizes)
 		{
 			compute();
 		};
 		box(const box<Dim>& other) : 
-			bounding_volume(type::box),
+			bounding_volume(other.m_type),
 			m_center(other.m_center),
 			m_half_sizes(other.m_half_sizes),
 			m_direction(other.m_direction),
@@ -666,17 +576,17 @@ namespace geometry {
 
 	/* distance functions  point - point */
 	template<std::size_t Dim> requires Dimension2D<Dim> || Dimension3D<Dim>
-	scalar distance(const tsg::vector<scalar, Dim>& p, const tsg::vector<scalar, Dim>& q) {
+	inline scalar distance(const tsg::vector<scalar, Dim>& p, const tsg::vector<scalar, Dim>& q) {
 		return (p - q).get_norm();
 	}
 	/* distance functions  point - plane */
 	template<std::size_t Dim> requires Dimension3D<Dim>
-	scalar distance(const tsg::vector<scalar, Dim>& p, const finite_plane<Dim>& f) {
+	inline scalar distance(const tsg::vector<scalar, Dim>& p, const finite_plane<Dim>& f) {
 		return  vector3D::dot((p - f.get_center()), f.get_normal());
 	};
 	/* distance functions  point - segment */
 	template<std::size_t Dim> requires Dimension2D<Dim> || Dimension3D<Dim>
-	scalar distance(const tsg::vector<scalar, Dim>& p, segment<Dim>& s) {
+	inline scalar distance(const tsg::vector<scalar, Dim>& p, segment<Dim>& s) {
 		/* TODO */
 		assert(0);
 		return scalar(0);
@@ -690,44 +600,11 @@ namespace geometry {
 		return vector2D({ -v.get<AXES::Y>(), v.get<AXES::X>() }).get_normalized();
 	}
 
-	class surface : public shape {
-	public:
-		surface() = default;
-		~surface() = default;
-		inline unsigned& operator[](MEASURE m) {
-			if (MEASURE::DEPTH != m) {
-				return m_measure[m];
-			}
-			else {
-				throw;
-			}
-		}
-		inline const unsigned& operator[](MEASURE m) const {
-			if (MEASURE::DEPTH != m) {
-				return m_measure[m];
-			}
-			else {
-				throw;
-			}
-		}
-
-	private:
-		unsigned m_measure[2];
-	};
-
-	class inertia_tensor {
+	class inertia_tensor_factory {
 	public:
 		enum class TYPE {
 			CUBE
 		};
-		static inline matrix3D get_inverse(const TYPE t) {
-			if (TYPE::CUBE == t) {
-				return matrix3D(matrix3D::TYPE::DIAGONAL, scalar(1) / scalar(12));
-			}
-			else {
-				tsg::logger::get_instance().write("Wrong inertia tensor type inserted");
-				assert(false);
-			}
-		}
+		static matrix3D get_inverse(const TYPE t);
 	};
 }

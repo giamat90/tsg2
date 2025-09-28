@@ -1,4 +1,4 @@
-#ifdef USE_GLFW
+#ifdef GLFW_GAME
 
 #include "glfw_game.h"
 #include "gl_includes.h"

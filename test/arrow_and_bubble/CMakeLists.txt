@@ -1,5 +1,5 @@
 # executable GLFW - specific 
-if(USE_GLFW)
+if(GLFW_GAME)
 	file(GLOB_RECURSE ARROW_AND_BUBBLES_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 	add_executable(arrow_and_bubbles ${ARROW_AND_BUBBLES_SOURCE})

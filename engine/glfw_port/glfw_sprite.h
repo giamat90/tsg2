@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../tsg2.h"
-#include "../sprite.h"
+#include "tsg2.h"
+#include "sprite.h"
 #include "glfw_texture.h"
 
 class TSG2_API glfw_sprite : public virtual glfw_texture, public virtual sprite {

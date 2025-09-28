@@ -21,7 +21,7 @@ target_link_libraries(engine PRIVATE tsg)
 # add necessary simbols to export the dll
 add_compile_definitions(TSG2_EXPORT)
 
-if(USE_GLFW)
+if(GLFW_GAME)
 	# Add GLFW port sources to engine library
 	file(GLOB GLFW_PORT_SOURCES 
 		"${CMAKE_CURRENT_SOURCE_DIR}/glfw_port/*.cpp"
@@ -37,7 +37,7 @@ if(USE_GLFW)
 	
 	source_group("engine\\glfw_port" FILES ${GLFW_PORT_SOURCES})
 	
-	target_compile_definitions(engine PUBLIC USE_GLFW)
+	target_compile_definitions(engine PUBLIC GLFW_GAME)
 
 	# includes directories
 	include_directories(${CMAKE_SOURCE_DIR}/externals/)
@@ -59,7 +59,7 @@ if(USE_GLFW)
 
 endif()
 
-if(USE_SDL)
+if(SDL_GAME)
 	# Add SDL port sources to engine library
 	file(GLOB SDL_PORT_SOURCES 
 		"${CMAKE_CURRENT_SOURCE_DIR}/sdl_port/*.cpp"
@@ -70,7 +70,7 @@ if(USE_SDL)
 
 	source_group("engine\\sdl_port" FILES ${SDL_PORT_SOURCES})
 
-	target_compile_definitions(engine PUBLIC USE_SDL)
+	target_compile_definitions(engine PUBLIC SDL_GAME)
 
 	# Add SDL link directory
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "Active(Debug)")
