@@ -1,3 +1,1 @@
-add_subdirectory(pong)
-add_subdirectory(arrow_bubble)
-add_subdirectory(minotaur)
+add_subdirectory(arrow_and_bubble)

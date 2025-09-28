@@ -1,10 +1,10 @@
 #include <tsg/io.h>
-#include "triangle_game.h"
+#include "arrow_and_bubbles.h"
 
 int main() {
-	tsg::print("Hello Triangle");
+	tsg::print("Arrow and Bubbles start");
 	try {
-		triangle_game t("triangle.exe", 1024, 768, 60);
+		triangle_game t("Arrow and Bubbles.exe", 1024, 768, 60);
 		t.initialize();
 		t.run_game();
 		t.shutdown();
