@@ -62,6 +62,7 @@ public:
 							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
 							scalar dz{ dx * obj->m_velocity.get<AXES::Z>() / obj->m_velocity.get<AXES::X>() };
 							obj->translate({ -dx, -dy, -dz });
+							
 						}
 						wall_contact({ scalar(-1), scalar(0), scalar(0) });
 					}
@@ -71,6 +72,7 @@ public:
 							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
 							scalar dz{ dy * obj->m_velocity.get<AXES::Z>() / obj->m_velocity.get<AXES::Y>() };
 							obj->translate({ -dx, -dy, -dz });
+							
 						}
 						wall_contact({ scalar(0), scalar(-1), scalar(0) });
 					}
@@ -84,7 +86,9 @@ public:
 							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
 							scalar dz{ dx * obj->m_velocity.get<AXES::Z>() / obj->m_velocity.get<AXES::X>() };
 							obj->translate({ -dx, -dy, -dz });
+							
 						}
+
 						wall_contact({ scalar(1), scalar(0), scalar(0) });
 					}
 					if (obj->m_box.get_min(AXES::Y) < m_limits.get_min(AXES::Y)) {
@@ -93,7 +97,9 @@ public:
 							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
 							scalar dz{ dy * obj->m_velocity.get<AXES::Z>() / obj->m_velocity.get<AXES::Y>() };
 							obj->translate({ -dx, -dy, -dz });
+							
 						}
+
 						wall_contact({ scalar(0), scalar(1), scalar(0) });
 					}
 					if (obj->m_box.get_min(AXES::Z) < m_limits.get_min(AXES::Z)) {
@@ -102,15 +108,15 @@ public:
 							scalar dx{ dz * obj->m_velocity.get<AXES::X>() / obj->m_velocity.get<AXES::Z>() };
 							scalar dy{ dz * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Z>() };
 							obj->translate({ -dx, -dy, -dz });
+							
 						}
 						wall_contact({ scalar(0), scalar(0), scalar(1) });
 					}
-
 					/* Search contacts with next objects */
 					auto next_it = std::next(it);
 					while (next_it != m_objects.end()) {
 						auto next_obj = *next_it;
-						if (contact(obj->get_box(), next_obj->get_box())) {
+						if (m_contact_engine.resolve(obj->get_bounding_volume(), next_obj->get_bounding_volume())) {
 							resolve_contact(obj, next_obj);
 							++next_it;
 						}
@@ -140,7 +146,7 @@ public:
 						if (!obj->m_velocity.is_zero()) {
 							scalar dx = obj->get_bounding_volume()->get_max(AXES::X) - m_limits.get_max(AXES::X);
 							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
-							obj->translate({ -dx, -dy });
+							obj->translate({ -dx, -dy });						
 						}
 						wall_contact({ scalar(-1), scalar(0) });
 						return;
@@ -158,7 +164,7 @@ public:
 						if (!obj->m_velocity.is_zero()) {
 							scalar dx = obj->get_bounding_volume()->get_min(AXES::X) - m_limits.get_min(AXES::X);
 							scalar dy{ dx * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::X>() };
-							obj->translate({ -dx, -dy });
+							obj->translate({ -dx, -dy });							
 						}
 						wall_contact({ scalar(1), scalar(0) });
 						return;
@@ -167,7 +173,7 @@ public:
 						if (!obj->m_velocity.is_zero()) {
 							scalar dy = obj->get_bounding_volume()->get_min(AXES::Y) - m_limits.get_min(AXES::Y);
 							scalar dx{ dy * obj->m_velocity.get<AXES::Y>() / obj->m_velocity.get<AXES::Y>() };
-							obj->translate({ -dx, -dy });
+							obj->translate({ -dx, -dy });							
 						}
 						wall_contact({ scalar(0), scalar(1) });
 						return;
@@ -187,203 +193,13 @@ public:
 				}
 			}
 			else {
+				/* Not allowed dimension */
 				assert(0);
 			}
 		};
-		vector get_scale() { return m_scale; }
+		inline vector get_scale() const { return m_scale; }
 	protected:
-		bool contact(box& a, box& b) {
-			if constexpr (Dim == 3) {
-				/* TODO */
-				assert(0);
-				/*
-				* This is an overlapping std::size_t pre-test to detect early exiting from collision detection
-				*/
-				if (a.get_max(AXES::X) >= b.get_min(AXES::X) &&
-					a.get_max(AXES::Y) >= b.get_min(AXES::Y) &&
-					a.get_max(AXES::Z) >= b.get_min(AXES::Z))
-				{
-					bool collide = true;
-					/* Store object's rotation matrix */
-					auto a_rot = a.get_axes();
-					auto b_rot = b.get_axes();
-					/*
-					* Axes that pass throw the two objects center.
-					* Also known as translation axes
-					*/
-					vector axes{ b.get_center() - a.get_center() };
-					/*
-					* Compute the translation axes in a-obj's coord system
-					*/
-					axes = {
-						vector::dot(axes, a_rot.get_row(AXES::X)),
-						vector::dot(axes, a_rot.get_row(AXES::Y)),
-						vector::dot(axes, a_rot.get_row(AXES::Z))
-					};
-					/*
-					* Computing b-obj's rotation matrix in a-obj's coord system and its abs
-					*/
-					tsg::matrix<scalar, 3, 3> r{ tsg::matrix<scalar,3,3>::TYPE::ZERO };
-					tsg::matrix<scalar, 3, 3> abs_r{ tsg::matrix<scalar,3,3>::TYPE::ZERO };
-					for (std::size_t i = 0u; i < 3u; ++i) {
-						for (std::size_t j = 0u; j < 3u; ++j) {
-							r(i, j) = vector::dot(a_rot.get_row(i), b_rot.get_row(j));
-							abs_r(i, j) = geometry::abs(r(i, j)) + geometry::epsilon;
-						}
-					}
-					/*
-					* Start with tests
-					*/
-					scalar ra{};
-					scalar rb{};
-					auto a_sizes = a.get_sizes();
-					auto b_sizes = b.get_sizes();
-					/*
-					* Test axes A0, A1 and A2
-					*/
-					for (std::size_t i = 0u; i < 3u; ++i) {
-						ra =
-							a_sizes[AXES::X] * (i == 0 ? 1 : 0) +
-							a_sizes[AXES::Y] * (i == 1 ? 1 : 0) +
-							a_sizes[AXES::Z] * (i == 2 ? 1 : 0);
-						rb =
-							b_sizes[AXES::X] * abs_r(i, 0) +
-							b_sizes[AXES::Y] * abs_r(i, 1) +
-							b_sizes[AXES::Z] * abs_r(i, 2);
-						const scalar val = (i == 0) ? axes[AXES::X] : (i == 1) ? axes[AXES::Y] : axes[AXES::Z];
-						if (geometry::abs(val) > ra + rb) {
-							return !collide;
-						}
-					}
-					/*
-					* Test axes B0, B1 and B2
-					*/
-					for (std::size_t i = 0u; i < 3u; ++i) {
-						ra =
-							a_sizes[AXES::X] * abs_r(i, 0) +
-							a_sizes[AXES::Y] * abs_r(i, 1) +
-							a_sizes[AXES::Z] * abs_r(i, 2);
-						rb = (i == 0) ? b_sizes[AXES::X] :
-							(i == 1) ? b_sizes[AXES::Y] : b_sizes[AXES::Z];
-						const scalar prj =
-							axes[AXES::X] * r(0, 1) +
-							axes[AXES::Y] * r(1, i) +
-							axes[AXES::Z] * r(2, i);
-						if (geometry::abs(prj) > ra + rb) {
-							return !collide;
-						}
-					}
-					/*
-					* Test all 9 cross product axes
-					*/
-					// A0 X B0
-					ra = a_sizes[AXES::Y] * abs_r(2, 0) + a_sizes[AXES::Z] * abs_r(1, 0);
-					rb = b_sizes[AXES::Y] * abs_r(0, 2) + a_sizes[AXES::Z] * abs_r(0, 1);
-					if (geometry::abs(axes[AXES::Z] * r(1, 0) - axes[AXES::Y] * r(2, 0)) > ra + rb) {
-						return !collide;
-					}
-					// A0 X B1
-					ra = a_sizes[AXES::Y] * abs_r(2, 1) + a_sizes[AXES::Z] * abs_r(1, 1);
-					rb = b_sizes[AXES::X] * abs_r(0, 2) + a_sizes[AXES::Z] * abs_r(0, 0);
-					if (geometry::abs(axes[AXES::Z] * r(1, 1) - axes[AXES::Y] * r(2, 1)) > ra + rb) {
-						return !collide;
-					}
-					// A0 X B2
-					ra = a_sizes[AXES::Y] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(1, 2);
-					rb = b_sizes[AXES::X] * abs_r(0, 1) + a_sizes[AXES::Y] * abs_r(0, 0);
-					if (geometry::abs(axes[AXES::Z] * r(1, 2) - axes[AXES::Y] * r(2, 2)) > ra + rb) {
-						return !collide;
-					}
-					// A1 X B2
-					ra = a_sizes[AXES::X] * abs_r(2, 0) + a_sizes[AXES::Z] * abs_r(0, 0);
-					rb = b_sizes[AXES::Y] * abs_r(1, 2) + a_sizes[AXES::Z] * abs_r(1, 1);
-					if (geometry::abs(axes[AXES::X] * r(2, 0) - axes[AXES::Z] * r(0, 0)) > ra + rb) {
-						return !collide;
-					}
-					// A1 X B1
-					ra = a_sizes[AXES::X] * abs_r(2, 1) + a_sizes[AXES::Z] * abs_r(0, 1);
-					rb = b_sizes[AXES::Y] * abs_r(1, 2) + a_sizes[AXES::Z] * abs_r(1, 0);
-					if (geometry::abs(axes[AXES::X] * r(2, 1) - axes[AXES::Z] * r(0, 1)) > ra + rb) {
-						return !collide;
-					}
-					// A1 X B2
-					ra = a_sizes[AXES::X] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(0, 2);
-					rb = b_sizes[AXES::X] * abs_r(1, 1) + a_sizes[AXES::Y] * abs_r(1, 0);
-					if (geometry::abs(axes[AXES::X] * r(2, 2) - axes[AXES::Z] * r(0, 2)) > ra + rb) {
-						return !collide;
-					}
-					// A2 X B0
-					ra = a_sizes[AXES::X] * abs_r(1, 0) + a_sizes[AXES::Y] * abs_r(0, 0);
-					rb = b_sizes[AXES::Y] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(2, 1);
-					if (geometry::abs(axes[AXES::Y] * r(0, 0) - axes[AXES::X] * r(1, 0)) > ra + rb) {
-						return !collide;
-					}
-					// A2 X B1
-					ra = a_sizes[AXES::X] * abs_r(1, 1) + a_sizes[AXES::Y] * abs_r(0, 1);
-					rb = b_sizes[AXES::X] * abs_r(2, 2) + a_sizes[AXES::Z] * abs_r(2, 0);
-					if (geometry::abs(axes[AXES::Y] * r(0, 1) - axes[AXES::X] * r(1, 1)) > ra + rb) {
-						return !collide;
-					}
-					// A2 X B2
-					ra = a_sizes[AXES::X] * abs_r(1, 2) + a_sizes[AXES::Y] * abs_r(0, 2);
-					rb = b_sizes[AXES::X] * abs_r(2, 1) + a_sizes[AXES::Y] * abs_r(2, 0);
-					if (geometry::abs(axes[AXES::Y] * r(0, 2) - axes[AXES::X] * r(1, 2)) > ra + rb) {
-						return !collide;
-					}
-					/*
-					* No separating axis found!!! Then there is a collision!
-					*/
-					return collide;
-				}
-				else {
-					return false;
-				}
-			}
-			else if constexpr (Dim == 2) {
-				/* AABB test */
-				if (a.get_max(AXES::X) > b.get_min(AXES::X)) {
-					if ((a.get_max(AXES::Y) > b.get_min(AXES::Y)) &&
-						(b.get_max(AXES::Y) > a.get_min(AXES::Y)))
-					{
-						return true;
-					}
-					else {
-						return false;
-					}
-				}
-				else {
-					return false;
-				}
-#if 0
-				/* OBB test */ /
-				auto is_separating_axis = [](const vector& axis, const box& a, const box& b) -> scalar {
-					auto project_box_into_axes = [](const box& b, const vector& axis) -> std::pair<scalar, scalar> {
-						scalar center_proj = vector::dot(b.get_center(), axis);
-						scalar radius =
-							geometry::abs(b.get_size<AXES::X>() * vector::dot(b.get_axes().get_row<AXES::X>(), axis)) +
-							geometry::abs(b.get_size<AXES::Y>() * vector::dot(b.get_axes().get_row<AXES::Y>(), axis));
-						return { center_proj - radius, center_proj + radius };
-					};
-					auto [min_a, max_a] = project_box_into_axes(a, axis);
-					auto [min_b, max_b] = project_box_into_axes(b, axis);
-					return (max_a < min_b - geometry::scalar_zero) || (max_b < min_a - geometry::scalar_zero);
-				};
-
-				for (size_t i{}; i < 2u; ++i) {
-					if (is_separating_axis(a.get_axes().get_row(i), a, b) || is_separating_axis(b.get_axes().get_row(i), a, b)) {
-						return false;
-					}
-				}
-				/* no separating axes found, then there is a collision */
-				return true;
-#endif
-			}
-			else {
-				assert(0);
-			}
-		};
 		void resolve_contact(physics::physical_object* const a, physics::physical_object* const b) {
-#if 1 /* using contact engine */
 			scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
 			/* resolve velocity */
 			scalar separating_velocity{ vector::dot((a->m_velocity - b->m_velocity), m_contact_engine.get_normal()) };
@@ -412,50 +228,6 @@ public:
 				a->m_angular_speed += torque_a;
 				b->m_angular_speed -= torque_b;
 			}
-#endif
-#if 0 /* TEST */
-			/*
-			* Compute contact data
-			*/
-			geometry::obb_contact<Dim> resolver(a->get_box(), b->get_box());
-			resolver.compute();
-			if (auto res = resolver.get_best_contact()) {
-				auto contact = res.value();
-				scalar total_inverse_mass{ a->m_inverse_mass + b->m_inverse_mass };
-#if RESOLVE_INTERPENETRATION
-				/* resolve interpenetration */
-				vector move_per_mass{ contact.get_penetration_vector() * (scalar(-1) / total_inverse_mass) };
-				a->translate(a->m_inverse_mass * move_per_mass);
-				b->translate(b->m_inverse_mass * move_per_mass);
-#endif
-				/* resolve velocity */
-				scalar separating_velocity{ vector::dot((a->m_velocity - b->m_velocity), contact.get_normal()) };
-				if(separating_velocity > scalar(0)) {
-					// objects are separating, no need to resolve
-					return;
-				}		
-				/* Linear coefficient */
-				/* case with restitution coeff variable */
-				constexpr scalar restutition_coeff{ scalar(1) };
-				scalar new_separating_velocity{ -separating_velocity * restutition_coeff };
-				scalar delta_velocity{ new_separating_velocity - separating_velocity };
-				vector impulse{ (delta_velocity / total_inverse_mass) * contact.get_normal() };
-				a->m_velocity += a->m_inverse_mass * impulse;
-				b->m_velocity -= b->m_inverse_mass * impulse;
-				/* Angular coefficient */
-				if constexpr (Dim == 3) {
-					assert(0); // TODO
-				} else if constexpr (Dim == 2) {
-					auto tmp = contact.get_point() - a->m_position;
-					auto opposite_impulse = scalar(-1) * impulse;
-					const scalar torque_a = tsg::vector<scalar, 3>::cross(geometry::point3D(tmp), geometry::point3D(opposite_impulse))[AXES::Z];
-					tmp = contact.get_point() - b->m_position;
-					const scalar torque_b = tsg::vector<scalar, 3>::cross(geometry::point3D(tmp), geometry::point3D(opposite_impulse))[AXES::Z];
-					a->m_angular_speed += torque_a;
-					b->m_angular_speed -= torque_b;
-				}
-			}
-#endif
 		};
 	protected:
 		std::vector<physical_object*> m_objects;
