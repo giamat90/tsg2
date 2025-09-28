@@ -2,8 +2,6 @@
 #include <texture.h>
 #include <tsg/os.h>
 
-#define ARROW_TEXTURE
-
 using geometry::scalar;
 using geometry::cos;
 
@@ -12,11 +10,7 @@ arrow::arrow() {
 }
 
 void arrow::init() {
-#ifdef ARROW_TEXTURE
-	m_sprite->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\arrow2.png")).string());
-#else
-	m_sprite->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\astronaut_sprite_3.png")).string());
-#endif
+	m_sprite->load((tsg::os::get_exe_path() / std::filesystem::path("assets\\arrow.png")).string());
 	m_sprite->set_where(texture::position({ m_position[geometry::AXES::X], m_position[geometry::AXES::Y]}));
 	m_sprite->set_scale(0.5f);
 	auto w = m_sprite->get_size().get<geometry::AXES::X>();

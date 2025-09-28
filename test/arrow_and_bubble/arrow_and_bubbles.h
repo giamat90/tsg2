@@ -5,6 +5,7 @@
 #include "bubble.h"
 
 #define NUMBER_OF_BUBBLE 10
+#define FORCE_INCLUDE_ARROW 1
 
 class triangle_game : public game<2, triangle_game>
 {

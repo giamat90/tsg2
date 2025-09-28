@@ -8,7 +8,9 @@
 #define EXCLUDE_BOUNDING_VOLUME 1
 
 #define EXCLUDE_BUBBLE 0
+#if !FORCE_INCLUDE_ARROW
 #define EXCLUDE_ARROW NUMBER_OF_BUBBLE > 1 ? 1 : 0
+#endif
 
 #if EXCLUDE_BUBBLE
 #define INCLUDE_BUBBLE( code ) /* code */
